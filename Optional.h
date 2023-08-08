@@ -77,7 +77,7 @@ public:
 	void swap(Optional& rhs){
 		//Two step swap
 		using std::swap;
-		swap(this->m_HasValue, rhs->HasValue);
+		swap(this->m_HasValue, rhs.m_HasValue);
 		swap(*reinterpret_cast<T*>(m_Storage),*reinterpret_cast<T*>(rhs.m_Storage));
 
 	}
@@ -111,7 +111,7 @@ template<>
 class Optional<NullOpt>;
 
 template<typename T>
-void swap(const Optional<T>& lhs, const Optional<T>& rhs){
+void swap(Optional<T>& lhs, Optional<T>& rhs){
     return lhs.swap(rhs);
 }
 
