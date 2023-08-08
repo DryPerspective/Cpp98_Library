@@ -1,5 +1,5 @@
-#ifndef CPP03_OPTIONAL
-#define CPP03_OPTIONAL
+#ifndef CPP98_OPTIONAL
+#define CPP98_OPTIONAL
 
 #include <new>
 #include <cassert>
@@ -22,9 +22,8 @@
 namespace dp{
 
 //A token "tag" to represent an empty optional
-//Feel free to create a globally scoped constant of this if you want less awkward syntax
 struct NullOpt{};
-
+//Can't to the old extern instance trick - the C++Builder linker says no
 
 template<typename T>
 class Optional{
@@ -36,7 +35,8 @@ class Optional{
 		unsigned char m_Storage[sizeof(contained_type)];    //The data representing the object.
 		long double m_phony_max_align;          			//Hacky analogue of std::max_align_t
 	};
-    bool      m_HasValue;
+	bool      m_HasValue;
+
 
 public:
 
@@ -63,11 +63,23 @@ public:
 	}
 
 	Optional& operator=(NullOpt){
-		if(m_HasValue){
+		this->reset();
+		return *this;
+	}
+
+	void reset(){
+ 		if(m_HasValue){
 			reinterpret_cast<T*>(m_Storage)->~T();
 			m_HasValue = false;
 		}
-		return *this;
+	}
+
+	void swap(Optional& rhs){
+		//Two step swap
+		using std::swap;
+		swap(this->m_HasValue, rhs->HasValue);
+		swap(*reinterpret_cast<T*>(m_Storage),*reinterpret_cast<T*>(rhs.m_Storage));
+
 	}
 
 	const T& operator*() const{
@@ -94,6 +106,62 @@ public:
     operator bool() const { return has_value(); }
 };
 
+//Left undefined to prevent use, for obvious reasons
+template<>
+class Optional<NullOpt>;
+
+template<typename T>
+void swap(const Optional<T>& lhs, const Optional<T>& rhs){
+    return lhs.swap(rhs);
+}
+
+template<typename T>
+Optional<T> make_Optional() {
+	return Optional<T>();
+}
+
+template<typename T, typename U>
+Optional<T> make_Optional(const U& in) {
+	return Optional<T>(in);
+}
+
+
+//Comparison operators
+template<typename T>
+bool operator==(const Optional<T>& lhs, const Optional<T>& rhs){
+	if(lhs && rhs){
+		return *lhs == *rhs;
+	}
+    else return !lhs && !rhs;
+}
+
+template<typename T>
+bool operator!=(const Optional<T>& lhs, const Optional<T>& rhs){
+	return !(lhs == rhs);
+}
+
+template<typename T>
+bool operator<(const Optional<T>& lhs, const Optional<T>& rhs){
+	if(lhs && rhs){
+		return *lhs < *rhs;
+	}
+	return !lhs && rhs;
+}
+
+template<typename T>
+bool operator<=(const Optional<T>& lhs, const Optional<T>& rhs){
+	return lhs < rhs || lhs == rhs;
+}
+
+template<typename T>
+bool operator>(const Optional<T>& lhs, const Optional<T>& rhs){
+	return !(lhs <= rhs);
+}
+
+template<typename T>
+bool operator>=(const Optional<T>& lhs, const Optional<T>& rhs){
+	return !(lhs < rhs);
+}
 
 }
 
