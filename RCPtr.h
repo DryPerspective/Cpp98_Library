@@ -1,12 +1,11 @@
-//---------------------------------------------------------------------------
-#ifndef RCPtrH
-#define RCPtrH
+#ifndef CPP98_RCPTR
+#define CPP98_RCPTR
 
 #include "RCBase.h"
 
 #include <cassert>
 
-//---------------------------------------------------------------------------
+
 /*
 *   A reference counting smart pointer. At the cost of more complex code and little extra allocation,
 *   this smart pointer allows us to a lot more freedom in terms of what we can do with it.

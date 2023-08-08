@@ -1,10 +1,10 @@
-//---------------------------------------------------------------------------
 
-#ifndef RCBaseH
-#define RCBaseH
+
+#ifndef CPP98_RCBASE
+#define CPP98_RCBASE
 
 #include <cstddef>  //For formal declaration of the std::size_t typedef
-//---------------------------------------------------------------------------
+
 
 //A general "reference-counting" base for use both in RCPtr and when writing
 //ref counted classes
