@@ -37,6 +37,9 @@ class Optional{
 	};
 	bool      m_HasValue;
 
+	void assignStorage(const Optional& in) {
+		*reinterpret_cast<T*>(m_Storage) = *reinterpret_cast<const T*>(in.m_Storage);
+	}
 
 public:
 
@@ -47,6 +50,12 @@ public:
 	}
 
     Optional(NullOpt) : m_HasValue(false) {}
+
+	//We need to ensure a deep copy is made by calling on the copy semantics of type T, rather than wholesale copying
+	//a collection of bits which represent T.
+	Optional(const Optional& in) : m_HasValue(in.m_HasValue) {
+		assignStorage(in);
+	}
 
     ~Optional()
 	{
@@ -67,6 +76,12 @@ public:
 		return *this;
 	}
 
+	Optional& operator=(const Optional& in){
+		m_HasValue = in.m_HasValue;
+		assignStorage(in);
+		return *this;
+	}
+
 	void reset(){
  		if(m_HasValue){
 			reinterpret_cast<T*>(m_Storage)->~T();
@@ -74,11 +89,11 @@ public:
 		}
 	}
 
-	void swap(Optional& rhs){
+	void swap(Optional& rhs) {
 		//Two step swap
 		using std::swap;
 		swap(this->m_HasValue, rhs.m_HasValue);
-		swap(*reinterpret_cast<T*>(m_Storage),*reinterpret_cast<T*>(rhs.m_Storage));
+		swap(*reinterpret_cast<T*>(this->m_Storage),*reinterpret_cast<T*>(rhs.m_Storage));
 
 	}
 
@@ -112,7 +127,7 @@ class Optional<NullOpt>;
 
 template<typename T>
 void swap(Optional<T>& lhs, Optional<T>& rhs){
-    return lhs.swap(rhs);
+    lhs.swap(rhs);
 }
 
 template<typename T>
