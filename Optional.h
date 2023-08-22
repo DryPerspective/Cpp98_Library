@@ -119,6 +119,45 @@ public:
 
     bool has_value() const { return m_HasValue; }
     operator bool() const { return has_value(); }
+
+	
+	//Comparison operators
+	//Friend members pattern to allow implicit conversion of solid values with optional ones
+	template<typename U>
+	friend bool operator==(const Optional<U>& lhs, const Optional<U>& rhs) {
+		if (lhs && rhs) {
+			return *lhs == *rhs;
+		}
+		else return !lhs && !rhs;
+	}
+
+	template<typename U>
+	friend bool operator!=(const Optional<U>& lhs, const Optional<U>& rhs) {
+		return !(lhs == rhs);
+	}
+
+	template<typename U>
+	friend bool operator<(const Optional<U>& lhs, const Optional<U>& rhs) {
+		if (lhs && rhs) {
+			return *lhs < *rhs;
+		}
+		return !lhs && rhs;
+	}
+
+	template<typename U>
+	friend bool operator<=(const Optional<U>& lhs, const Optional<U>& rhs) {
+		return lhs < rhs || lhs == rhs;
+	}
+
+	template<typename U>
+	friend bool operator>(const Optional<U>& lhs, const Optional<U>& rhs) {
+		return !(lhs <= rhs);
+	}
+
+	template<typename U>
+	friend bool operator>=(const Optional<U>& lhs, const Optional<U>& rhs) {
+		return !(lhs < rhs);
+	}
 };
 
 //Left undefined to prevent use, for obvious reasons
@@ -141,44 +180,6 @@ Optional<T> make_Optional() {
 template<typename T, typename U>
 Optional<T> make_Optional(const U& in) {
 	return Optional<T>(in);
-}
-
-
-//Comparison operators
-template<typename T>
-bool operator==(const Optional<T>& lhs, const Optional<T>& rhs){
-	if(lhs && rhs){
-		return *lhs == *rhs;
-	}
-    else return !lhs && !rhs;
-}
-
-template<typename T>
-bool operator!=(const Optional<T>& lhs, const Optional<T>& rhs){
-	return !(lhs == rhs);
-}
-
-template<typename T>
-bool operator<(const Optional<T>& lhs, const Optional<T>& rhs){
-	if(lhs && rhs){
-		return *lhs < *rhs;
-	}
-	return !lhs && rhs;
-}
-
-template<typename T>
-bool operator<=(const Optional<T>& lhs, const Optional<T>& rhs){
-	return lhs < rhs || lhs == rhs;
-}
-
-template<typename T>
-bool operator>(const Optional<T>& lhs, const Optional<T>& rhs){
-	return !(lhs <= rhs);
-}
-
-template<typename T>
-bool operator>=(const Optional<T>& lhs, const Optional<T>& rhs){
-	return !(lhs < rhs);
 }
 
 }
