@@ -126,6 +126,9 @@ template<>
 class Optional<NullOpt>;
 
 template<typename T>
+class Optional<T&>;
+
+template<typename T>
 void swap(Optional<T>& lhs, Optional<T>& rhs){
     lhs.swap(rhs);
 }
