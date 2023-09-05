@@ -31,14 +31,21 @@ class Optional{
 	typedef T contained_type; //Typedef to avoid two-phase lookup issues
 
 	//Union trick to delay initialization
-    union {
+	union {
 		unsigned char m_Storage[sizeof(contained_type)];    //The data representing the object.
 		long double m_phony_max_align;          			//Hacky analogue of std::max_align_t
 	};
 	bool      m_HasValue;
 
-	void assignStorage(const Optional& in) {
-		*reinterpret_cast<T*>(m_Storage) = *reinterpret_cast<const T*>(in.m_Storage);
+	//Cut down on reinterpret_casts all over the place
+	inline T& storedObject(){
+		assert(m_HasValue && "Attempt to access uninitialized stored object");
+		return *reinterpret_cast<T*>(m_Storage);
+	}
+
+	inline const T& storedObject() const{
+        assert(m_HasValue && "Attempt to access uninitialized stored object");
+		return *reinterpret_cast<const T*>(m_Storage);
 	}
 
 public:
@@ -49,25 +56,42 @@ public:
 		new (m_Storage) T(Value);
 	}
 
-    Optional(NullOpt) : m_HasValue(false) {}
+	Optional(NullOpt) : m_HasValue(false) {}
 
 	//We need to ensure a deep copy is made by calling on the copy semantics of type T, rather than wholesale copying
 	//a collection of bits which represent T.
 	Optional(const Optional& in) : m_HasValue(in.m_HasValue) {
-		assignStorage(in);
+		//Not initialized so can't assign it as a T.
+		if(m_HasValue) new (m_Storage) T(in.storedObject());
 	}
 
     ~Optional()
 	{
-		if (m_HasValue) reinterpret_cast<T*>(m_Storage)->~T();
+		if (m_HasValue) this->reset();
 	}
 
 	Optional& operator=(const T& in) {
-		if (m_HasValue) *reinterpret_cast<T*>(m_Storage) = in;
+		if (m_HasValue) storedObject() = in;
 		else{
 			new (m_Storage) T(in);
 			m_HasValue = true;
 		}
+		return *this;
+	}
+
+	Optional& operator=(const Optional& in){
+		/*
+		*   Four Important possibilities
+		*   1: Both optionals have a value - we need a value-wise copy not a bitwise one
+		*   2: We have a value but are being assigned as empty - need to destroy any resources we hold.
+		*   3: We don't have a value but the other does - can't dereference an uninitialized pointer so we placement new
+		*   4: Neither has a value so we don't need to do anything anyway
+		*/
+		if(m_HasValue && in.m_HasValue) this->storedObject() = in.storedObject();
+		else if(m_HasValue) this->reset();
+		else if(in.m_HasValue) new (m_Storage) T( in.storedObject() );
+
+		m_HasValue = in.m_HasValue;
 		return *this;
 	}
 
@@ -76,52 +100,45 @@ public:
 		return *this;
 	}
 
-	Optional& operator=(const Optional& in){
-		m_HasValue = in.m_HasValue;
-		assignStorage(in);
-		return *this;
-	}
-
 	void reset(){
  		if(m_HasValue){
-			reinterpret_cast<T*>(m_Storage)->~T();
+			this->storedObject().~T();
 			m_HasValue = false;
 		}
 	}
 
-	void swap(Optional& rhs) {
+	void swap(Optional& rhs){
 		//Two step swap
 		using std::swap;
-		swap(this->m_HasValue, rhs.m_HasValue);
-		swap(*reinterpret_cast<T*>(this->m_Storage),*reinterpret_cast<T*>(rhs.m_Storage));
+		swap(this->m_HasValue, rhs->HasValue);
+		swap(this.storedObject(),rhs.storedObject());
 
 	}
 
 	const T& operator*() const{
 		assert(m_HasValue && "Empty optional dereferenced");
-		return *reinterpret_cast<const T*>(m_Storage);
+		return storedObject();
     }
 
 	T& operator*(){
 		assert(m_HasValue && "Empty optional dereferenced");
-		return *reinterpret_cast<T*>(m_Storage);
+		return storedObject();
 	}
 
 	const T* operator->() const{
 		assert(m_HasValue && "Empty optional dereferenced");
-		return reinterpret_cast<const T*>(m_Storage);
+		return storedObject();
 	}
 
 	T* operator->(){
 		assert(m_HasValue && "Empty optional dereferenced");
-		return reinterpret_cast<T*>(m_Storage);
+		return storedObject();
 	}
 
     bool has_value() const { return m_HasValue; }
-    operator bool() const { return has_value(); }
+	operator bool() const { return has_value(); }
 
-	
-	//Comparison operators
+    //Comparison operators
 	//Friend members pattern to allow implicit conversion of solid values with optional ones
 	template<typename U>
 	friend bool operator==(const Optional<U>& lhs, const Optional<U>& rhs) {
@@ -158,6 +175,8 @@ public:
 	friend bool operator>=(const Optional<U>& lhs, const Optional<U>& rhs) {
 		return !(lhs < rhs);
 	}
+
+
 };
 
 //Left undefined to prevent use, for obvious reasons
