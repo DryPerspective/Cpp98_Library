@@ -5,7 +5,7 @@
 #include <cassert>
 
 /*
-*	An analogue of std::optional which should work as far back as C++03.
+*	An analogue of std::optional which should work as far back as C++98.
 *
 *   Implementation decisions:
 *   - We can't use alignment operators to police memory as they are a C++11 feature
@@ -67,7 +67,7 @@ public:
 
     ~Optional()
 	{
-		if (m_HasValue) this->reset();
+		this->reset();
 	}
 
 	Optional& operator=(const T& in) {
@@ -80,19 +80,12 @@ public:
 	}
 
 	Optional& operator=(const Optional& in){
-		/*
-		*   Four Important possibilities
-		*   1: Both optionals have a value - we need a value-wise copy not a bitwise one
-		*   2: We have a value but are being assigned as empty - need to destroy any resources we hold.
-		*   3: We don't have a value but the other does - can't dereference an uninitialized pointer so we placement new
-		*   4: Neither has a value so we don't need to do anything anyway
-		*/
-		if(m_HasValue && in.m_HasValue) this->storedObject() = in.storedObject();
-		else if(m_HasValue) this->reset();
-		else if(in.m_HasValue) new (m_Storage) T( in.storedObject() );
-
-		m_HasValue = in.m_HasValue;
-		return *this;
+	//Copy-and-swap unfortunately not as foolproof as it usually is
+	//or at least, is not as guaranteed to be due to swap not being as guaranteed exception free as you'd hope.
+    //But, this still provides a more DRY approach than having both functions be 90% identical.
+		  Optional copy(in);
+		  this->swap(copy);
+		  return *this;
 	}
 
 	Optional& operator=(NullOpt){
@@ -107,36 +100,65 @@ public:
 		}
 	}
 
-	void swap(Optional& rhs){
-		//Two step swap
-		using std::swap;
-		swap(this->m_HasValue, rhs->HasValue);
-		swap(this.storedObject(),rhs.storedObject());
+	void swap(Optional& other){
+		/*
+		*   Four Important possibilities
+		*   1: Both optionals have a value - we need a value-wise swap not a bitwise one
+		*   2: We have a value but are swapped with an empty.
+		*   3: We don't have a value but the other does - can't dereference an uninitialized pointer so we placement new
+		*   4: Neither has a value so we don't need to do anything anyway
+		*/
+        using std::swap;	//Two-step swap, and the m_HasValue needs std::swap anyway
+		if(m_HasValue && other.m_HasValue){
 
+			swap(this->storedObject(), other.storedObject());
+		}
+		else if(m_HasValue){
+			new (other.m_Storage) T(this->storedObject());
+			this->reset();
+		}
+		else if(other.m_HasValue) {
+			new (m_Storage) T( other.storedObject() );
+			other.reset();
+		}
+
+		swap(m_HasValue, other.m_HasValue);
 	}
 
 	const T& operator*() const{
-		assert(m_HasValue && "Empty optional dereferenced");
 		return storedObject();
     }
 
 	T& operator*(){
-		assert(m_HasValue && "Empty optional dereferenced");
 		return storedObject();
 	}
 
 	const T* operator->() const{
-		assert(m_HasValue && "Empty optional dereferenced");
-		return storedObject();
+		return &(storedObject());
 	}
 
 	T* operator->(){
-		assert(m_HasValue && "Empty optional dereferenced");
-		return storedObject();
+		return &(storedObject());
 	}
 
     bool has_value() const { return m_HasValue; }
 	operator bool() const { return has_value(); }
+
+	T& value(){
+		return storedObject();
+	}
+
+	const T& value() const{
+		return storedObject();
+	}
+
+	//Alas no move semantics/forwarding references
+	template<typename Other>
+	T value_or(const Other& other){
+		if(has_value()) return storedObject();
+		else return other;
+	}
+
 
     //Comparison operators
 	//Friend members pattern to allow implicit conversion of solid values with optional ones
