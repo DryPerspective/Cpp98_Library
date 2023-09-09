@@ -29,12 +29,12 @@ struct array{
 
 
     reference at(size_type index){
-        if(index > N) throw std::out_of_range("Bad array access");
+        if(index >= N) throw std::out_of_range("Bad array access");
         return m_data[index];
     }
 
     const_reference at(size_type index) const{
-        if(index > N) throw std::out_of_range("Bad array access");
+        if(index >= N) throw std::out_of_range("Bad array access");
         return m_data[index];
     }
 
