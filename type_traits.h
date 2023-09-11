@@ -255,7 +255,7 @@ struct is_destructible{
     typedef char (&Yes)[2];
 
     template<typename U>
-    static Yes test(int(*)[sizeof(detail::declval<U>().~U(),detail::declval<U>())]);
+    static Yes test(int(*)[sizeof(detail::declval<U>().~U(),detail::declval<U>())]);    //Comma otherwise we'd end up with sizeof(void) which is invalid
     template<typename>
     static No test(...);
 
@@ -272,7 +272,7 @@ namespace detail{
         typedef char (&Yes)[2];
 
         template<typename V, typename W>
-        static Yes test(int(*)[sizeof(swap(detail::declval<V>(),detail::declval<W>()),detail::declval<U>())]);
+        static Yes test(int(*)[sizeof(swap(detail::declval<V>(),detail::declval<W>()),  detail::declval<U>())]);
         template<typename, typename>
         static No test(...);
 
@@ -286,7 +286,7 @@ template<typename T, typename U>
 struct is_swappable_with : detail::is_swappable_with<T,U> {};
 
 template<typename T>
-struct is_swappable : detail::is_swappable_with<typename add_lvalue_reference<T>::type, typename add_lvalue_reference<T>::type> {};
+struct is_swappable : detail::is_swappable_with<T,T> {};
 
 
 
