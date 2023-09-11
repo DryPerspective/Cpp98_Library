@@ -22,11 +22,12 @@
 namespace dp{
 
 //A token "tag" to represent an empty optional
-struct NullOpt{};
+struct nullopt_t{};
 //Can't to the old extern instance trick - the C++Builder linker says no
+static const nullopt_t nullopt;
 
 template<typename T>
-class Optional{
+class optional{
 
 	typedef T contained_type; //Typedef to avoid two-phase lookup issues
 
@@ -50,27 +51,27 @@ class Optional{
 
 public:
 
-    Optional() : m_HasValue(false) {}
+    optional() : m_HasValue(false) {}
 
-	Optional(const T& Value) : m_HasValue(true){
+	optional(const T& Value) : m_HasValue(true){
 		new (m_Storage) T(Value);
 	}
 
-	Optional(NullOpt) : m_HasValue(false) {}
+	optional(nullopt_t) : m_HasValue(false) {}
 
 	//We need to ensure a deep copy is made by calling on the copy semantics of type T, rather than wholesale copying
 	//a collection of bits which represent T.
-	Optional(const Optional& in) : m_HasValue(in.m_HasValue) {
+	optional(const optional& in) : m_HasValue(in.m_HasValue) {
 		//Not initialized so can't assign it as a T.
 		if(m_HasValue) new (m_Storage) T(in.storedObject());
 	}
 
-    ~Optional()
+    ~optional()
 	{
 		this->reset();
 	}
 
-	Optional& operator=(const T& in) {
+	optional& operator=(const T& in) {
 		if (m_HasValue) storedObject() = in;
 		else{
 			new (m_Storage) T(in);
@@ -79,16 +80,16 @@ public:
 		return *this;
 	}
 
-	Optional& operator=(const Optional& in){
+	optional& operator=(const optional& in){
 	//Copy-and-swap unfortunately not as foolproof as it usually is
 	//or at least, is not as guaranteed to be due to swap not being as guaranteed exception free as you'd hope.
     //But, this still provides a more DRY approach than having both functions be 90% identical.
-		  Optional copy(in);
+		  optional copy(in);
 		  this->swap(copy);
 		  return *this;
 	}
 
-	Optional& operator=(NullOpt){
+	optional& operator=(nullopt_t){
 		this->reset();
 		return *this;
 	}
@@ -100,7 +101,11 @@ public:
 		}
 	}
 
-	void swap(Optional& other){
+	void swap(optional& other){
+		//Because of the possibility of one or more object being uninitialized, this can't be a simple swap
+		//As such its noexcept specification isn't simple either
+		//This is non-throwing if swap(T,T) is nonthrowing and if T is nothrow-copy-constructible
+
 		/*
 		*   Four Important possibilities
 		*   1: Both optionals have a value - we need a value-wise swap not a bitwise one
@@ -163,7 +168,7 @@ public:
     //Comparison operators
 	//Friend members pattern to allow implicit conversion of solid values with optional ones
 	template<typename U>
-	friend bool operator==(const Optional<U>& lhs, const Optional<U>& rhs) {
+	friend bool operator==(const optional<U>& lhs, const optional<U>& rhs) {
 		if (lhs && rhs) {
 			return *lhs == *rhs;
 		}
@@ -171,12 +176,12 @@ public:
 	}
 
 	template<typename U>
-	friend bool operator!=(const Optional<U>& lhs, const Optional<U>& rhs) {
+	friend bool operator!=(const optional<U>& lhs, const optional<U>& rhs) {
 		return !(lhs == rhs);
 	}
 
 	template<typename U>
-	friend bool operator<(const Optional<U>& lhs, const Optional<U>& rhs) {
+	friend bool operator<(const optional<U>& lhs, const optional<U>& rhs) {
 		if (lhs && rhs) {
 			return *lhs < *rhs;
 		}
@@ -184,17 +189,17 @@ public:
 	}
 
 	template<typename U>
-	friend bool operator<=(const Optional<U>& lhs, const Optional<U>& rhs) {
+	friend bool operator<=(const optional<U>& lhs, const optional<U>& rhs) {
 		return lhs < rhs || lhs == rhs;
 	}
 
 	template<typename U>
-	friend bool operator>(const Optional<U>& lhs, const Optional<U>& rhs) {
+	friend bool operator>(const optional<U>& lhs, const optional<U>& rhs) {
 		return !(lhs <= rhs);
 	}
 
 	template<typename U>
-	friend bool operator>=(const Optional<U>& lhs, const Optional<U>& rhs) {
+	friend bool operator>=(const optional<U>& lhs, const optional<U>& rhs) {
 		return !(lhs < rhs);
 	}
 
@@ -203,24 +208,24 @@ public:
 
 //Left undefined to prevent use, for obvious reasons
 template<>
-class Optional<NullOpt>;
+class optional<nullopt_t>;
 
 template<typename T>
-class Optional<T&>;
+class optional<T&>;
 
 template<typename T>
-void swap(Optional<T>& lhs, Optional<T>& rhs){
+void swap(optional<T>& lhs, optional<T>& rhs){
     lhs.swap(rhs);
 }
 
 template<typename T>
-Optional<T> make_Optional() {
-	return Optional<T>();
+optional<T> make_optional() {
+	return optional<T>();
 }
 
 template<typename T, typename U>
-Optional<T> make_Optional(const U& in) {
-	return Optional<T>(in);
+optional<T> make_optional(const U& in) {
+	return optional<T>(in);
 }
 
 }
