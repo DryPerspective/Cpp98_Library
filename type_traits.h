@@ -17,6 +17,7 @@
 */
 
 #include <cctype>
+#include <algorithm>
 
 namespace dp{
 
@@ -40,6 +41,11 @@ struct remove_reference;
 
 template<typename>
 struct add_lvalue_reference;
+
+namespace detail{
+    template<typename T>
+    typename add_lvalue_reference<T>::type declval();
+}
 
 /*
 * BASE TYPES
@@ -211,7 +217,7 @@ namespace detail{
 
         template<typename U, typename V>
         static Yes test(int(*)[sizeof(typename type_identity<U>::type(static_cast<V>(*((typename remove_reference<V>::type*)0))))]);
-        template<typename U, typename V>
+        template<typename, typename>
         static No test(...);
         
         public:
@@ -221,6 +227,69 @@ namespace detail{
 }
 template<typename T>
 struct is_copy_constructible : detail::is_constructible_from_one<T, typename add_lvalue_reference<T>::type> {};
+
+
+
+template<typename T, typename Arg>
+struct is_assignable{
+    private:
+    typedef char No;
+    typedef char (&Yes)[2];
+
+    template<typename U, typename V>
+    static Yes test(int(*)[sizeof(detail::declval<U>() = detail::declval<V>())]);
+    template<typename, typename>
+    static No test(...);
+
+    public:
+    static const bool value = sizeof(test<T,Arg>(0)) == sizeof(Yes);
+};
+
+template<typename T>
+struct is_copy_assignable : is_assignable<T, typename add_lvalue_reference<T>::type> {};
+
+template<typename T>
+struct is_destructible{
+    private:
+    typedef char No;
+    typedef char (&Yes)[2];
+
+    template<typename U>
+    static Yes test(int(*)[sizeof(detail::declval<U>().~U(),detail::declval<U>())]);
+    template<typename>
+    static No test(...);
+
+    public:
+    static const bool value = sizeof(test<T>(0)) == sizeof(Yes);   
+};
+
+namespace detail{
+    using std::swap;    //This cannot be at class scope so we need a namespace
+    template<typename T,typename U>
+    struct is_swappable_with{
+        private:    
+        typedef char No;
+        typedef char (&Yes)[2];
+
+        template<typename V, typename W>
+        static Yes test(int(*)[sizeof(swap(detail::declval<V>(),detail::declval<W>()),detail::declval<U>())]);
+        template<typename, typename>
+        static No test(...);
+
+        public:
+        static const bool value = sizeof(test<T,U>(0)) == sizeof(Yes);   
+    };
+
+}
+
+template<typename T, typename U>
+struct is_swappable_with : detail::is_swappable_with<T,U> {};
+
+template<typename T>
+struct is_swappable : detail::is_swappable_with<typename add_lvalue_reference<T>::type, typename add_lvalue_reference<T>::type> {};
+
+
+
 
 
 
@@ -333,11 +402,17 @@ template<typename T>
 struct remove_reference<T&>{
     typedef T type;
 };
-//Not foolproof - void& results in an error
+//Not perfect, but it should work
 template<typename T>
 struct add_lvalue_reference{
     typedef T& type;
 };
+template<typename T>
+struct add_lvalue_reference<T&>{
+    typedef T& type;
+};
+template<>
+struct add_lvalue_reference<void>{};
 
 /*
 * ARRAY TYPES
