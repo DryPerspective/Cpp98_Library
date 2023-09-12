@@ -81,7 +81,7 @@ public:
 	}
 
 	optional& operator=(const optional& in){
-	//Note that optional::swap is noexcept on both swapping and copying.
+	//Note that optional::swap's exception specification depends on both swapping and copying.
 	//Copy-and-swap should still maintain the strong exception guarantee here. Assuming no abnormal exception behaviour
 	//which would also trip up a usual copy-and-swap (e.g. throwing destructor), the latest an exception can be thrown is 
 	//in the first operation within swap(), at which point the original state in both cases will not have been modified
@@ -214,6 +214,9 @@ class optional<nullopt_t>;
 template<typename T>
 class optional<T&>;
 
+
+//And a swap in the same namespace, with the same exception specification as before
+//Noexcept for swap(T,T) and T's copy constructor.
 template<typename T>
 void swap(optional<T>& lhs, optional<T>& rhs){
     lhs.swap(rhs);
