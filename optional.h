@@ -24,7 +24,7 @@ namespace dp{
 //A token "tag" to represent an empty optional
 struct nullopt_t{};
 //Can't to the old extern instance trick - the C++Builder linker says no
-static const nullopt_t nullopt;
+static const nullopt_t nullopt = {};
 
 template<typename T>
 class optional{
@@ -81,9 +81,10 @@ public:
 	}
 
 	optional& operator=(const optional& in){
-	//Copy-and-swap unfortunately not as foolproof as it usually is
-	//or at least, is not as guaranteed to be due to swap not being as guaranteed exception free as you'd hope.
-    //But, this still provides a more DRY approach than having both functions be 90% identical.
+	//Note that optional::swap is noexcept on both swapping and copying.
+	//Copy-and-swap should still maintain the strong exception guarantee here. Assuming no abnormal exception behaviour
+	//which would also trip up a usual copy-and-swap (e.g. throwing destructor), the latest an exception can be thrown is 
+	//in the first operation within swap(), at which point the original state in both cases will not have been modified
 		  optional copy(in);
 		  this->swap(copy);
 		  return *this;
@@ -104,7 +105,7 @@ public:
 	void swap(optional& other){
 		//Because of the possibility of one or more object being uninitialized, this can't be a simple swap
 		//As such its noexcept specification isn't simple either
-		//This is non-throwing if swap(T,T) is nonthrowing and if T is nothrow-copy-constructible
+		//This is non-throwing if swap(T,T) is nonthrowing and if T is nothrow-copy-constructible.
 
 		/*
 		*   Four Important possibilities

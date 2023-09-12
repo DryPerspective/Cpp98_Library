@@ -216,15 +216,6 @@ namespace dp{
         return &in[0];
     }
 
-    template<typename T>
-    typename enable_if<detail::HasDataMember<std::vector<T> >::value, T*>::type data(std::vector<T>& in) {
-        return in.data();
-    }
-    template<typename T>
-    typename enable_if<detail::HasDataMember<std::vector<T> >::value, const T*>::type data(const std::vector<T>& in) {
-        return in.data();
-    }
-
 #else
     template<typename T>
     auto data(T& in) -> decltype(in.data()){
@@ -255,6 +246,65 @@ namespace dp{
     const T* data(const T (&in)[N]){
         return in;
     }
+
+
+
+
+    /*
+    *   These are not a part of a modern standard, and should be swapped out for auto as needed
+    *   however, they make use of begin(), end(), etc more useful
+    *   The idea being that instead of auto it = std::begin(range); you can do typename dp::iterator_type<T>::type it = dp::begin(range)
+    *   Though hopefully you'd use a typedef to cut down on the verbosity.
+    *   Don't forget to check const correctness manually. A const T which tries to use iterator_type<T> will probably create compile issues
+    */
+    namespace detail {
+        template<typename T, bool = is_array<T>::value>
+        struct iter_type {
+            typedef typename T::iterator type;
+        };
+        template<typename T>
+        struct iter_type<T, true> {
+            typedef typename decay_array<T>::type type;
+        };
+
+        template<typename T, bool = is_array<T>::value>
+        struct citer_type {
+            typedef typename T::const_iterator type;
+        };
+        template<typename T>
+        struct citer_type<T, true> {
+            typedef typename decay_array<typename add_const<T>::type>::type type;
+        };
+
+        template<typename T, bool = is_array<T>::value>
+        struct riter_type {
+            typedef typename T::reverse_iterator type;
+        };
+        template<typename T>
+        struct riter_type<T, true> {
+            typedef typename std::reverse_iterator<typename decay_array<typename T>::type> type;
+        };
+
+        template<typename T, bool = is_array<T>::value>
+        struct criter_type {
+            typedef typename T::const_reverse_iterator type;
+        };
+        template<typename T>
+        struct criter_type<T, true> {
+            typedef typename std::reverse_iterator<typename decay_array<typename add_const<T>::type>::type> type;
+        };
+
+    } 
+
+    template<typename T>
+    struct iterator_type : detail::iter_type<T> {};
+    template<typename T>
+    struct const_iterator_type : detail::citer_type<T> {};
+    template<typename T>
+    struct reverse_iterator_type : detail::riter_type<T> {};
+    template<typename T>
+    struct const_reverse_iterator_type : detail::criter_type<T> {};
+
 }
 
 #endif
