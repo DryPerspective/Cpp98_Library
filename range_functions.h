@@ -105,7 +105,7 @@ namespace dp{
     }
     template<typename T, std::size_t N>
     typename std::reverse_iterator<const T*> crend(const T (&in)[N]){
-        return std::reverse_iterator<const T*>(end(in));
+        return std::reverse_iterator<const T*>(begin(in));
     }
 
     template<typename T>
