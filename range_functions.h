@@ -226,12 +226,12 @@ namespace dp{
     }
 
 #else
-    template<template<class...> class temp, typename T>
-    auto data(temp<T>& in) -> decltype(in.data()){
+    template<typename T>
+    auto data(T& in) -> decltype(in.data()){
         return in.data();
     }
-    template<template<class...> class temp, typename T>
-    auto data(const temp<T>& in) -> decltype(in.data()){
+    template<typename T>
+    auto data(const T& in) -> decltype(in.data()){
         return in.data();
     }
 #endif
