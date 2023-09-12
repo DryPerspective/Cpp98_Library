@@ -1,6 +1,11 @@
+#ifndef CPP98_RANGE_FUNCTIONS
+#define CPP98_RANGE_FUNCTIONS
+
 #include <cstddef>
 #include <iterator>
 #include <vector>
+
+#include "type_traits.h"
 
 namespace dp{
     template<typename T>
@@ -168,7 +173,7 @@ namespace dp{
     const T* data(const temp<T,U,V>& in){
         return in.data();
     }
-    template<template<class,class, class,class> class temp, typename T, typename U, typename V, typename W>
+    template<template<class,class,class,class> class temp, typename T, typename U, typename V, typename W>
     T* data(temp<T,U,V,W>& in){
         return in.data();
     }
@@ -176,18 +181,48 @@ namespace dp{
     const T* data(const temp<T,U,V,W>& in){
         return in.data();
     }
-    //Vector's data function was added retroactively via DR; and odds are if you're still
-    //on a compiler that's still in C++98 then you probably also won't have been keeping
-    //up with all the latest DRs either. So, we use this old trick.
-    //Here's hoping you're either at least on C++03 or aren't using an exotic implementation
-    //which doesn't guarantee contiguous memory layout.
+    
+    /*
+    *  Vector is complicated.
+    *  Prior to C++03, its storage was not required to be contiguous. Almost every implementation still stored it that way, but it was not a requirement.
+    *  Additionally, the data() member function was added via DR and so not every C++98/03 compiler will have it. Some will, some won't. And indeed it was
+    *  not uncommon back in the day to use a workaround to get there.
+    *  I can't require that the data is contiguous on the program level. Good luck to you if you're on an exotic implementation.
+    *  However, I can provide data through the (most likely safer) data() member if it exists, and use the workaround otherwise.
+    */
+    namespace detail {
+        template<typename T>
+        struct HasDataMember {
+            private:
+                typedef char No;
+                typedef char(&Yes)[2];
+
+                template<typename U>
+                static Yes test(int(*)[sizeof(detail::declval<U>().data())]);
+                template<typename, typename>
+                static No test(...);
+
+            public:
+                static const bool value = sizeof(test<T>(0)) == sizeof(Yes);
+           
+        };
+    }
     template<typename T>
-    T* data(std::vector<T>& in){
+    typename enable_if<!detail::HasDataMember<std::vector<T> >::value, T*>::type data(std::vector<T>& in){
         return &in[0];
     }
     template<typename T>
-    const T* data(const std::vector<T>& in){
+    typename enable_if<!detail::HasDataMember<std::vector<T> >::value, const T*>::type data(const std::vector<T>& in){
         return &in[0];
+    }
+
+    template<typename T>
+    typename enable_if<detail::HasDataMember<std::vector<T> >::value, T*>::type data(std::vector<T>& in) {
+        return in.data();
+    }
+    template<typename T>
+    typename enable_if<detail::HasDataMember<std::vector<T> >::value, const T*>::type data(const std::vector<T>& in) {
+        return in.data();
     }
 
 #else
@@ -221,3 +256,5 @@ namespace dp{
         return in;
     }
 }
+
+#endif
