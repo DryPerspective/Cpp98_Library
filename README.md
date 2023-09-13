@@ -6,6 +6,7 @@ All tools in this repo exist in `namespace dp`
 
 ## List of Features
 * **array** - An analogue of `std::array`, sharing the same functionality and interface. 
+* **numeric** - A light implementation of *some* of the functions added to the `<numeric>` header from C++11 and up. Does not include algorithms added for parallelisation purposes as C++98 has no standard concurrency primitives.
 * **optional** - An an analogue of `std::optional` - a class which optionally contains a value, is in a well-defined state in all cases, and which does not construct a held value until it is required to hold one.
 * **range_functions** - Contains analogues of the C++11-C++17 "range access" functions : `std::begin()`; `std::end()`; c-, r-, and cr- versions of the same; `std::size()`, `std::ssize()`, `std::empty()`, and `std::data()`. This also adds some generic iterator types to complement use of `dp::begin()` etc in a generic way; which can be safely replaced by `auto` on a future standard.
 * **rc_base** - A general-purpose base class for creating reference counted, COW classes. Intended for use in rc_ptr as well as other classes which seek to add ref-counting, COW behaviour.
