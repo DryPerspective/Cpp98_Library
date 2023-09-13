@@ -299,9 +299,13 @@ namespace dp{
     template<typename T>
     struct iterator_type : detail::iter_type<T> {};
     template<typename T>
+    struct iterator_type<const T> : detail::citer_type<T> {};
+    template<typename T>
     struct const_iterator_type : detail::citer_type<T> {};
     template<typename T>
     struct reverse_iterator_type : detail::riter_type<T> {};
+    template<typename T>
+    struct reverse_iterator_type<const T> : detail::criter_type<T> {};
     template<typename T>
     struct const_reverse_iterator_type : detail::criter_type<T> {};
 
