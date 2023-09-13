@@ -3,9 +3,11 @@
 
 #include <cstddef>
 #include <iterator>
-#include <vector>
+#include <vector>       //Vector special cases
+#include <string>       //String special cases
 
 #include "type_traits.h"
+#include "type_traits_ns.h"
 
 namespace dp{
     template<typename T>
@@ -138,50 +140,44 @@ namespace dp{
 
     //Data
     /*  What I wouldn't do for deduced return types and variadic templates
-    *   Apologies that this is some ugly code.
-    *   Rationale: No standard container in C++98 has more than 4 template parameters
-    *   (even then, most don't have a data() function)
-    *   As such, this data() should cover all standard library containers (the spec) 
-    *   and the lion's share of all possible custom containers (a bonus).
-    *
-    *   You also get a bonus feature - since std::data() is a C++17 feature, the preprocessor
-    *   switch below will swap all these ugly overloads out for a simple variadic which achieves
-    *   the same thing. In case you want to use this C++17 feature on C++11 or C++14
+    *   We need to make some assumptions here. They are valid assumptions for the C++98 STL, but not
+    *   in the general case for every possible custom made container.
+    *   A shared property of all STL types which contain a data() member prior to C++11 is that 
+    *   they are all specialisations of some template basic_foo<dataT, otherT, otherT> for however many other types (up to 4 types total before C++11)
+    *   Therefore, if we can extract the first template type, we can get the correct return type for all STL types (the spec)
+    *   and I'd wager the majority of custom container types (a bonus)
+    * 
+    *   Also secret bonus feature - since std::data is a C++17 feature, the following preprocessor switch will allow access to a C++11-friendly
+    *   and more reliable variadic approach, which should hold for C++11 and C++14.
     */
 #ifndef DP_CPP_11_DATA
-    template<template<class> class temp, typename T>
-    T* data(temp<T>& in){
-        return in.data();
-    }
-    template<template<class> class temp, typename T>
-    const T* data(const temp<T>& in){
-        return in.data();
-    }
-    template<template<class,class> class temp, typename T, typename U>
-    T* data(temp<T,U>& in){
-        return in.data();
-    }
-    template<template<class,class> class temp, typename T,typename U>
-    const T* data(const temp<T,U>& in){
-        return in.data();
-    }
-    template<template<class,class, class> class temp, typename T, typename U, typename V>
-    T* data(temp<T,U,V>& in){
-        return in.data();
-    }
-    template<template<class,class,class> class temp, typename T,typename U, typename V>
-    const T* data(const temp<T,U,V>& in){
-        return in.data();
-    }
-    template<template<class,class,class,class> class temp, typename T, typename U, typename V, typename W>
-    T* data(temp<T,U,V,W>& in){
-        return in.data();
-    }
-    template<template<class,class,class,class> class temp, typename T,typename U, typename V, typename W>
-    const T* data(const temp<T,U,V,W>& in){
-        return in.data();
-    }
     
+    template<typename T>
+    typename dp::add_pointer<typename dp::param_types<T>::first_param_type>::type data(T& in) {
+        return in.data();
+    }
+
+    template<typename T>
+    typename dp::add_pointer<typename dp::add_const<typename dp::param_types<T>::first_param_type>::type>::type data(const T& in) {
+        return in.data();
+    }
+
+    /*
+    *  Specialisation for strings
+    *  Because const char* is the eternal special case and we can't have nice things.
+    *  Always return const char, otherwise substitution fails. Because string::data() always returned a const char* until C++17
+    *
+    *  We start with a flat specialisation for the std::basic_string template
+    */
+    template<typename charT, typename charTraits, typename alloc>
+    typename dp::add_pointer<typename dp::add_const<charT>::type>::type data(std::basic_string<charT, charTraits, alloc>& in) {
+        return in.data();
+    }
+    template<typename charT, typename charTraits, typename alloc>
+    typename dp::add_pointer<typename dp::add_const<charT>::type>::type data(const std::basic_string<charT, charTraits, alloc>& in) {
+        return in.data();
+    }    
+            
     /*
     *  Vector is complicated.
     *  Prior to C++03, its storage was not required to be contiguous. Almost every implementation still stored it that way, but it was not a requirement.
@@ -199,7 +195,7 @@ namespace dp{
 
                 template<typename U>
                 static Yes test(int(*)[sizeof(detail::declval<U>().data())]);
-                template<typename, typename>
+                template<typename>
                 static No test(...);
 
             public:
@@ -208,11 +204,11 @@ namespace dp{
         };
     }
     template<typename T>
-    typename enable_if<!detail::HasDataMember<std::vector<T> >::value, T*>::type data(std::vector<T>& in){
+    typename dp::enable_if<!detail::HasDataMember<std::vector<T> >::value, T*>::type data(std::vector<T>& in){
         return &in[0];
     }
     template<typename T>
-    typename enable_if<!detail::HasDataMember<std::vector<T> >::value, const T*>::type data(const std::vector<T>& in){
+    typename dp::enable_if<!detail::HasDataMember<std::vector<T> >::value, const T*>::type data(const std::vector<T>& in){
         return &in[0];
     }
 
@@ -298,6 +294,9 @@ namespace dp{
 
     template<typename T>
     struct iterator_type : detail::iter_type<T> {};
+    //Specialisation so that const T -> const_iterator
+    //Note that for a function void f(const T& in), T will still deduce to a non-const type, and iterator_type<T> will give you a T::iterator
+    //But if you feed a const variable into a function void f(T& in), this will give you a T::const_iterator and prevent const conversion errors.
     template<typename T>
     struct iterator_type<const T> : detail::citer_type<T> {};
     template<typename T>
@@ -308,6 +307,36 @@ namespace dp{
     struct reverse_iterator_type<const T> : detail::criter_type<T> {};
     template<typename T>
     struct const_reverse_iterator_type : detail::criter_type<T> {};
+
+
+
+    /*
+    *  I personally work a lot in Embarcadero C++Builder (using an old Borland compiler), and expecting the string types there to match the general pattern the standard sets us to follow is a fool's errand
+    *  So, I need specialisations for the types used there.
+    */
+#ifdef __BORLANDC__
+
+    const char* data(const System::AnsiString& in) {
+        return in.c_str();      //Embarcadero return a nullpointer in the empty case rather than an emtpy string for data(); so we use c_str().
+    }
+
+    const wchar_t* data(const System::UnicodeString& in) {
+        return in.c_str();
+    }
+
+
+#endif
+
+
+
+
+
+
+
+
+
+
+
 
 }
 

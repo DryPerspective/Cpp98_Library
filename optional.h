@@ -51,6 +51,9 @@ class optional{
 
 public:
 
+	//Public facing typedef. Less ugly than public-private-public switcheroo to use the other one
+	typedef T value_type;
+
     optional() : m_HasValue(false) {}
 
 	optional(const T& Value) : m_HasValue(true){

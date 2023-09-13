@@ -579,22 +579,6 @@ namespace detail{
 template<typename T>
 struct make_unsigned : detail::make_unsigned<T> {};
 
-namespace detail {
-    /*
-    *  IMPLEMENTATION SECTION
-    *  This section is a little different. There are many traits which we can't implement; however multiple programs might want a part of how they work.
-    *  For instance, we can't implement a complete std::decay implementation, but we might want to decay an array
-    *  Rather than scattering these general type transformations across multiple projects, we instead centralise them here.
-    *  Note these are implementation-level traits. I do not promise to have accounted for user use and misuse.
-    */
-
-    template<typename T>
-    struct decay_array {
-        typedef typename dp::add_pointer<typename dp::remove_extent<T>::type>::type type;
-    };
-}
-
-
 }
 
 #endif
