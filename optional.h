@@ -77,12 +77,12 @@ public:
 		if (m_HasValue) new (m_Storage) T(*in);
 	}
 
-	template<typename U>// typename dp::enable_if<dp::is_convertible<T,U>::value, bool>::type = true>
-	optional(const optional<U>& in) : m_HasValue(in.has_value()) {
+	template<typename U>
+	explicit optional(const optional<U>& in) : m_HasValue(in.has_value()) {
 		if(m_HasValue) new (m_Storage) T(*in);
 	}
 
-	template<typename U>// = T, typename dp::enable_if<dp::is_convertible<T, U>::value, bool>::type = true>
+	template<typename U>
 	optional(const U& Value) : m_HasValue(true){
 		new (m_Storage) T(Value);
 	}
