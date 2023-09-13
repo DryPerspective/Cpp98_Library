@@ -64,6 +64,13 @@ typedef integral_constant<bool,true> true_type;
 typedef integral_constant<bool,false> false_type;
 
 
+template<bool b>
+struct bool_constant : true_type {};
+
+template<>
+struct bool_constant<false> : false_type {};
+
+
 
 /*
 * TYPE CATEGORIES

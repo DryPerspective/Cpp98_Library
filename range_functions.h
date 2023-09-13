@@ -168,6 +168,7 @@ namespace dp{
     *  Always return const char, otherwise substitution fails. Because string::data() always returned a const char* until C++17
     *
     *  We start with a flat specialisation for the std::basic_string template
+    *  Don't forget that prior to C++11, it's UB to dereference a pointer produced by std::string::data when the string is empty.
     */
     template<typename charT, typename charTraits, typename alloc>
     typename dp::add_pointer<typename dp::add_const<charT>::type>::type data(std::basic_string<charT, charTraits, alloc>& in) {
@@ -317,11 +318,11 @@ namespace dp{
 #ifdef __BORLANDC__
 
     const char* data(const System::AnsiString& in) {
-        return in.c_str();      //Embarcadero return a nullpointer in the empty case rather than an emtpy string for data(); so we use c_str().
+        return in.data();      //Embarcadero return a nullpointer in the empty case rather than an emtpy string for data(); so we use c_str().
     }
 
     const wchar_t* data(const System::UnicodeString& in) {
-        return in.c_str();
+        return in.data();
     }
 
 
