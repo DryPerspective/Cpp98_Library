@@ -219,16 +219,6 @@ namespace dp{
     }
 #endif
 
-    //Overload for if you're using an std::array-style analogue
-    template<template<class,std::size_t> class temp, typename T, std::size_t N>
-    T* data(temp<T,N>& in){
-        return in.data();
-    }
-    template<template<class,std::size_t> class temp, typename T, std::size_t N>
-    const T* data(const temp<T,N>& in){
-        return in.data();
-    }
-
     //And after all this ugliness, we get to C-arrays
     template<typename T, std::size_t N>
     T* data(T (&in)[N]){
