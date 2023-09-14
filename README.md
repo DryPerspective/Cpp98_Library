@@ -5,6 +5,7 @@ Created because I spend a fair bit of time maintaining and adapting legacy code 
 All tools in this repo exist in `namespace dp`
 
 ## List of Features
+* **algorithm** - Standard library algorithms added in C++11 and onwards, which would normally live in the `<algorithm>` header.
 * **array** - An analogue of `std::array`, sharing the same functionality and interface. 
 * **numeric** - A light implementation of *some* of the functions added to the `<numeric>` header from C++11 and up. Does not include algorithms added for parallelisation purposes as C++98 has no standard concurrency primitives.
 * **optional** - An an analogue of `std::optional` - a class which optionally contains a value, is in a well-defined state in all cases, and which does not construct a held value until it is required to hold one.
@@ -16,6 +17,10 @@ All tools in this repo exist in `namespace dp`
 * **type_traits_ns** - A collection of **n**on-**s**tandard general-purpose type traits which support other parts of this repo; but which are not specified to appear in the modern type_traits header. While they will be needed for some other headers in in the repo to function; this tradeoff seemed the best of options between that greatly complicating code in the other files, or hiding general-purpose traits in the detail namespace and hoping that I don't need them more than once or run into naming collisions.
 
 ## FAQ
+* **Why do you not have X from Y header?** 
+When adding a new feature or header I strive to include every part of that header in modern code which I reasonably can. Many library features in modern C++ rely on modern core language features or compiler magic, and so these are not included in the repo. There are also many features in the modern C++ standard library which are perfectly possible to implement in C++98, and these are what I include.
+There does exist a third category. Objects which may be technically possible to implement in C++98 but which are far, far more trouble than it's worth. For instance, it is probably possible to implement `<format>` into C++98 with enough template wizardry, but the tradeoff between implementing all that template work and how useful it would actually be in real code is balanced far too far against using it that it's not worth bothering with.
+
 * **Why do some names match their standard library counterpart (e.g. array) and others don't (e.g. scoped_ptr)?**
   The distinction there is simple - constructs which match the contract of the standard library object (within the confines of C++98) share the name. Constructs which are lacking meaningful parts of their standard library counterpart do not. For example - `scoped_ptr` does not have any move semantics associated with it. It can't, we're in C++98. But move semantics are a large part of what makes `std::unique_ptr` what it is; and a moveable unique-ownership pointer is meaningfully different from a scope-local, unmoveable `scoped_ptr`. On the other hand, `array` matches the interface and requirements of `std::array` more exactly; and while it too is missing move semantics, they are a significantly less important part of what makes `std::array` what it is, so the name is the same.
 
