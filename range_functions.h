@@ -140,12 +140,7 @@ namespace dp{
 
     //Data
     /*  What I wouldn't do for deduced return types and variadic templates
-    *   We need to make some assumptions here. They are valid assumptions for the C++98 STL, but not
-    *   in the general case for every possible custom made container.
-    *   A shared property of all STL types which contain a data() member prior to C++11 is that 
-    *   they are all specialisations of some template basic_foo<dataT, otherT, otherT> for however many other types (up to 4 types total before C++11)
-    *   Therefore, if we can extract the first template type, we can get the correct return type for all STL types (the spec)
-    *   and I'd wager the majority of custom container types (a bonus)
+    *   Assuming a container/object follows the standard approach and provides standard typedefs, this will work.
     * 
     *   Also secret bonus feature - since std::data is a C++17 feature, the following preprocessor switch will allow access to a C++11-friendly
     *   and more reliable variadic approach, which should hold for C++11 and C++14.
@@ -153,12 +148,12 @@ namespace dp{
 #ifndef DP_CPP_11_DATA
     
     template<typename T>
-    typename dp::add_pointer<typename dp::param_types<T>::first_param_type>::type data(T& in) {
+    typename T::pointer data(T& in) {
         return in.data();
     }
 
     template<typename T>
-    typename dp::add_pointer<typename dp::add_const<typename dp::param_types<T>::first_param_type>::type>::type data(const T& in) {
+    typename T::const_pointer data(const T& in) {
         return in.data();
     }
 
@@ -171,11 +166,11 @@ namespace dp{
     *  Don't forget that prior to C++11, it's UB to dereference a pointer produced by std::string::data when the string is empty.
     */
     template<typename charT, typename charTraits, typename alloc>
-    typename dp::add_pointer<typename dp::add_const<charT>::type>::type data(std::basic_string<charT, charTraits, alloc>& in) {
+    typename std::basic_string<charT, charTraits, alloc>::const_pointer data(std::basic_string<charT, charTraits, alloc>& in) {
         return in.data();
     }
     template<typename charT, typename charTraits, typename alloc>
-    typename dp::add_pointer<typename dp::add_const<charT>::type>::type data(const std::basic_string<charT, charTraits, alloc>& in) {
+    typename std::basic_string<charT, charTraits, alloc>::const_pointer data(const std::basic_string<charT, charTraits, alloc>& in) {
         return in.data();
     }    
             
