@@ -303,20 +303,17 @@ namespace dp {
 			for (ForwardIt1 it = begin; it != end; ++it) {
 				//If we've already checked this value, we skip it
 				//Hacky analogue of std::find for a binary predicate
-				bool broken = false;
 				for (ForwardIt1 findIt = begin; findIt != it; ++findIt) {
-					if (pred(*findIt, *it)) {
-						broken = true;
-						break;
-					}
+					if (pred(*findIt, *it)) goto continue_loop;		//May the gods forgive me for using a goto in my code, but it does simplify things quite a bit.	
 				}
-				if (broken)continue;
-							
 
+				{
 				//Otherwise make sure this value occurs the same number of times in both remaining ranges
 				typedef typename std::iterator_traits<ForwardIt2>::difference_type diff_type;
 				diff_type count_in_dest = dp::detail::count_with_pred(dest_begin, dest_end, *it, pred);
 				if (count_in_dest == 0 || count_in_dest != dp::detail::count_with_pred(it, end, *it, pred)) return false;
+				}
+			continue_loop:;
 			}			
 		}
 		return true;	
