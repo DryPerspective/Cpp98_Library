@@ -39,6 +39,7 @@ namespace dp {
 	namespace detail {
 		template<typename ValT, typename DelT, bool = dp::is_pointer<DelT>::value>
 		struct deleter_holder {
+		protected:
 			DelT m_deleter;
 
 			template<typename T>
@@ -49,13 +50,14 @@ namespace dp {
 			}
 		};
 		template<typename ValT, typename DelT>
-		struct deleter_holder<ValT, DelT, false> {
+		struct deleter_holder<ValT, DelT, false> : DelT {
+		protected:
 			deleter_holder() {}
-			template<typename T>
-			deleter_holder(T&) {}   //Do nothing constructor as we care about the type, not the value
+
+			deleter_holder(const DelT& del) : DelT(del) {}
 
 			void delete_resource(ValT* in) {
-				DelT()(in);
+				this->operator()(in);
 			}
 		};
 	}
@@ -76,13 +78,11 @@ namespace dp {
 		typedef T*		pointer;
 		typedef Deleter deleter_type;
 
-		scoped_ptr(T* in = NULL) : m_data(in) {}
+		explicit scoped_ptr(T* in = NULL) : m_data(in) {}
 
-		template<typename del_type>
-		explicit scoped_ptr(T* in, del_type del_inst) : detail::deleter_holder<T, Deleter>(del_inst), m_data(in) {}
+		explicit scoped_ptr(pointer in, deleter_type del_inst) : detail::deleter_holder<T, Deleter>(del_inst), m_data(in) {}
 
-
-		scoped_ptr& operator=(T* in) {
+		scoped_ptr& operator=(pointer in) {
 			this->reset(in);
 			return *this;
 		}
@@ -94,16 +94,28 @@ namespace dp {
 			swap(this->get(), other.get());
 		}
 
-		const T& operator*() const { return *m_data; }
-		T& operator*() { return *m_data; }
-		const T* operator->() const { return m_data; }
-		T* operator->() { return m_data; }
-		const T* get() const { return m_data; }
-		T* get() { return m_data; }
+		const element_type& operator*() const { return *m_data; }
+		element_type& operator*() { return *m_data; }
+		const pointer operator->() const { return m_data; }
+		pointer operator->() { return m_data; }
+		const pointer get() const { return m_data; }
+		pointer get() { return m_data; }
+
+		//Get_deleter. Unfortunately we must do more template trickery to disambiguate whether to return a function pointer or a deleter class
+
+		template<bool = dp::is_pointer<Deleter>::value>
+		deleter_type& get_deleter() { return m_deleter; }
+		template<>
+		deleter_type& get_deleter<false>() { return static_cast<Deleter&>(*this); }
+
+		template<bool = dp::is_pointer<Deleter>::value>
+		const deleter_type& get_deleter() const { return m_deleter; }
+		template<>
+		const deleter_type& get_deleter<false>() const { return static_cast<Deleter&>(*this); }
 
 
 		//Release ownership of the resource and return the raw pointer to it.
-		T* release() {
+		pointer release() {
 			T* temp = m_data;
 			m_data = NULL;
 			return temp;
@@ -111,7 +123,7 @@ namespace dp {
 
 		//Replace the resource we currently own with a new one
 		//Or just delete the resource we have
-		void reset(T* in = NULL) {
+		void reset(pointer in = NULL) {
 			if (m_data != in) {
 				this->delete_resource(m_data);
 				m_data = in;
@@ -145,17 +157,16 @@ namespace dp {
 		typedef T*		pointer;
 		typedef Deleter deleter_type;
 
-		scoped_ptr(T* in = NULL) : m_data(in) {}
+		explicit scoped_ptr(pointer in = NULL) : m_data(in) {}
 
-		template<typename del_type>
-		explicit scoped_ptr(T* in, del_type del_inst) : detail::deleter_holder<T, Deleter>(del_inst), m_data(in) {}
+		explicit scoped_ptr(pointer in, deleter_type del_inst) : detail::deleter_holder<T, Deleter>(del_inst), m_data(in) {}
 
 		//We use the correct delete operator.
 		~scoped_ptr() {
 			this->reset();
 		}
 
-		scoped_ptr& operator=(T* in) {
+		scoped_ptr& operator=(pointer in) {
 			this->reset(in);
 			return *this;
 		}
@@ -166,28 +177,28 @@ namespace dp {
 		}
 
 		//Rather than dereference and pointer access operators, we provide array access
-		const T& operator[](std::size_t N) const {
+		const element_type& operator[](std::size_t N) const {
 			return m_data[N];
 		}
-		T& operator[](std::size_t N) {
+		element_type& operator[](std::size_t N) {
 			return m_data[N];
 		}
 
 		//As before, offer functions to get, reset, and release
-		const T* get() const {
+		const pointer get() const {
 			return m_data;
 		}
-		T* get() {
+		pointer get() {
 			return m_data;
 		}
 
-		T* release() {
+		pointer release() {
 			T* temp = m_data;
 			m_data = NULL;
 			return temp;
 		}
 
-		void reset(T* in = NULL) {
+		void reset(pointer in = NULL) {
 			if (m_data != in) {
 				this->delete_resource(m_data);
 				m_data = in;

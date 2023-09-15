@@ -4,9 +4,11 @@
 
 /.vs
 /Cpp98_Tools.sln
-/Cpp98_Tools.vcxproj
-/Cpp98_Tools.vcxproj.filters
 /CppProperties.json
 /tests.cpp
-/Cpp98_Tools.vcxproj.user
+
 /x64
+/CPP_98 Tools.sln
+*.vcxproj
+*.filters
+*.user
