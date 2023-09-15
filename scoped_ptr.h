@@ -192,6 +192,19 @@ namespace dp {
 			return m_data;
 		}
 
+		
+		template<bool = dp::is_pointer<Deleter>::value>
+		deleter_type& get_deleter() { return m_deleter; }
+		template<>
+		deleter_type& get_deleter<false>() { return static_cast<Deleter&>(*this); }
+
+		template<bool = dp::is_pointer<Deleter>::value>
+		const deleter_type& get_deleter() const { return m_deleter; }
+		template<>
+		const deleter_type& get_deleter<false>() const { return static_cast<Deleter&>(*this); }
+
+
+
 		pointer release() {
 			T* temp = m_data;
 			m_data = NULL;
