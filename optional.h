@@ -3,8 +3,7 @@
 
 #include <new>
 #include <exception>
-
-#include "type_traits.h"
+#include <algorithm> //For std::swap, which lived in <algorithm> before C++11
 
 /*
 *	An analogue of std::optional which should work as far back as C++98.
@@ -32,7 +31,7 @@ static const nullopt_t nullopt = {};
 //Bad optional access exception
 struct bad_optional_access : std::exception {
 	bad_optional_access() {}
-	virtual ~bad_optional_access() {}
+	virtual ~bad_optional_access() throw() {}
 	virtual const char* what() const throw() {
 		return "Bad optional access";
 	}
@@ -63,8 +62,6 @@ class optional{
 
 
 public:
-
-
 
 	//Public facing typedef. Less ugly than public-private-public switcheroo to use the other one
 	typedef T value_type;
@@ -97,8 +94,8 @@ public:
 		return *this;
 	}
 	
-	template<typename U = T, typename dp::enable_if<dp::is_convertible<T,U>::value, bool>::type = true>
-	optional& operator=(const U& in) {
+	template<typename U>
+    optional& operator=(const U& in) {
 		if (m_HasValue) storedObject() = in;
 		else{
 			new (m_Storage) T(in);
@@ -107,7 +104,7 @@ public:
 		return *this;
 	}
 
-	template<typename U = T, typename dp::enable_if<dp::is_convertible<T, U>::value, bool>::type = true>
+	template<typename U>
 	optional& operator=(const optional<U>& in){
 	//Note that optional::swap's exception specification depends on both swapping and copying.
 	//Copy-and-swap should still maintain the strong exception guarantee here. Assuming no abnormal exception behaviour
@@ -115,7 +112,7 @@ public:
 	//in the first operation within swap(), at which point the original state in both cases will not have been modified
 	//Since those operations are either a swap (which should be noexcept) or a placement new into uninitialized memory,
 	//the meaningful state of the program should not change
-		  optional<U> copy(in);
+		  optional<T> copy(in);
 		  this->swap(copy);
 		  return *this;
 	}
@@ -129,7 +126,9 @@ public:
 		}
 	}
 
-	void swap(optional& other){
+    //Note we can't use a general template here because
+    //std::swap doesn't work for multiple types, even convertible ones
+	void swap(dp::optional<T>& other){
 		//Because of the possibility of one or more object being uninitialized, this can't be a simple swap
 		//As such its noexcept specification isn't simple either
 		//This is non-throwing if swap(T,T) is nonthrowing and if T is nothrow-copy-constructible.
@@ -142,7 +141,7 @@ public:
 		*   4: Neither has a value so we don't need to do anything anyway
 		*/
         using std::swap;	//Two-step swap, and the m_HasValue needs std::swap anyway
-		if(m_HasValue && other.m_HasValue){
+		if(m_HasValue && other.has_value()){
 			swap(this->storedObject(), other.storedObject());
 		}
 		else if(m_HasValue){
@@ -174,7 +173,7 @@ public:
 	}
 
     bool has_value() const { return m_HasValue; }
-	operator bool() const { return has_value(); }
+	//operator bool() const { return has_value(); }
 
 	T& value(){
 		if (!this->has_value()) throw dp::bad_optional_access();
@@ -343,27 +342,6 @@ template<typename T, typename U>
 bool operator>=(const U& lhs, const dp::optional<T>& rhs) {
 	return !(lhs < rhs);
 }
-
-
-
-
-
-
-
-}
-
-namespace std {
-
-template<typename T>
-struct hash<dp::optional<T> > {
-	std::size_t operator()(const dp::optional<T>& in) {
-		if (in.has_value) {
-			return std::hash<typename dp::remove_const<T>::type>()(*in);
-		}
-		else return 0;
-	}
-};
-
 
 }
 
