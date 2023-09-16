@@ -8,3 +8,7 @@ namespace dp{
     template<>
     struct static_assert_98<false>;
 }
+
+#ifndef DP_NO_ASSERT_MACRO
+#define STATIC_ASSERT(args) dp::static_assert_98<args>();
+#endif
