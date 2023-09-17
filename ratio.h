@@ -56,28 +56,28 @@ template<typename R1, typename R2>
 struct ratio_add{
     static const std::ptrdiff_t num = R1::num * R2::den + R2::num * R1::den;
     static const std::ptrdiff_t den = R1::den * R2::den;
-    typedef typename dp::ratio<num, den> type;
+    typedef dp::ratio<num, den> type;
 };
 
 template<typename R1, typename R2>
 struct ratio_subtract{
     static const std::ptrdiff_t num = R1::num * R2::den - R2::num * R1::den;
     static const std::ptrdiff_t den = R1::den * R2::den;
-    typedef typename dp::ratio<num,den> type;
+    typedef dp::ratio<num,den> type;
 };
 
 template<typename R1, typename R2>
 struct ratio_multiply{
     static const std::ptrdiff_t num = R1::num * R2::num;
     static const std::ptrdiff_t den = R1::den * R2::den;
-    typedef typename dp::ratio<num,den> type;
+    typedef dp::ratio<num,den> type;
 };
 
 template<typename R1, typename R2>
 struct ratio_divide{
     static const std::ptrdiff_t num = R1::num * R2::den;
     static const std::ptrdiff_t den = R1::den * R2::num;
-    typedef typename dp::ratio<num,den> type;
+    typedef dp::ratio<num,den> type;
 };
 
 template<typename R1, typename R2>
