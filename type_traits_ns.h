@@ -1,5 +1,5 @@
-#ifndef CPP98_TYPE_TRAITS_NONSTANDARD
-#define CPP98_TYPE_TRAITS_NONSTANDARD
+#ifndef DP_CPP98_TYPE_TRAITS_NONSTANDARD
+#define DP_CPP98_TYPE_TRAITS_NONSTANDARD
 
 #include "type_traits.h"
 
@@ -9,22 +9,6 @@
 */
 
 namespace dp {
-
-    /*
-    *  We cannot create a general purpose std::decay because that requires an is_function trait and that be complete without variadic templates (or compiler intrinsics)
-    *  But the ability to decay a C-array to a pointer is still useful
-    */
-    namespace detail {
-        template<typename T, bool = dp::is_array<T>::value>
-        struct decay_array {
-            typedef typename dp::add_pointer<typename dp::remove_extent<T>::type>::type type;
-        };
-        template<typename T>
-        struct decay_array<T, false> {};
-    }
-
-    template<typename T>
-    struct decay_array : detail::decay_array<T> {};
 
 
     /*

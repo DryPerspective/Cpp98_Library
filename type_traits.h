@@ -1,5 +1,5 @@
-#ifndef CPP98_TYPE_TRAITS
-#define CPP98_TYPE_TRAITS
+#ifndef DP_CPP98_TYPE_TRAITS
+#define DP_CPP98_TYPE_TRAITS
 
 /*
 *   A C++98 compliant version of the type_traits header
@@ -12,8 +12,6 @@
 *   To be precise - is_union is compiler magic. is_class requires a check against !is_union.
 *   implementing is_class without that check is possible, but will produce different results from
 *   std::is_class in some circumstances - not good.
-*   is_function requires variadic templates to work properly, otherwise we can only test against
-*   a finite subset of the possible function signatures and will have a trait which only usually works.
 */
 
 #include <cctype>
@@ -41,6 +39,15 @@ struct remove_reference;
 
 template<typename>
 struct add_lvalue_reference;
+
+template<typename>
+struct is_const;
+
+template<typename>
+struct is_reference;
+
+template<typename>
+struct is_member_pointer;
 
 namespace detail{
     template<typename T>
@@ -105,6 +112,9 @@ template<typename T, std::size_t N>
 struct is_array<T[N]> : true_type {};
 
 template<typename T>
+struct is_function : dp::integral_constant<bool, !dp::is_const<const T>::value && !dp::is_reference<T>::value> {};
+
+template<typename T>
 struct is_pointer : false_type {};
 template<typename T>
 struct is_pointer<T*> : true_type {};
@@ -119,6 +129,19 @@ template<typename T>
 struct is_lvalue_reference : false_type {};
 template<typename T>
 struct is_lvalue_reference<T&> : true_type {};
+
+
+namespace detail{
+    template<typename T>
+    struct is_memfun_ptr_impl : dp::false_type {};
+    template<typename T, typename U>
+    struct is_memfun_ptr_impl<T U::*> : dp::is_function<T> {};
+}
+template<typename T>
+struct is_member_function_pointer : dp::detail::is_memfun_ptr_impl<typename dp::remove_cv<T>::type> {};
+
+template<typename T>
+struct is_member_object_pointer : dp::integral_constant<bool, dp::is_member_pointer<T>::value && ! dp::is_member_function_pointer<T>::value> {};
 
 /*
 * COMPOSITE TYPES
@@ -138,6 +161,16 @@ struct is_compound : integral_constant<bool, !is_fundamental<T>::value> {};
 
 template<typename T>
 struct is_reference : is_lvalue_reference<T> {};
+
+namespace detail{
+    template<typename T>
+    struct is_member_pointer_impl : dp::false_type {};
+    template<typename T, typename U>
+    struct is_member_pointer_impl<T U::*> : dp::true_type{};
+}
+template<typename T>
+struct is_member_pointer : dp::detail::is_member_pointer_impl<typename dp::remove_cv<T>::type> {};
+
 
 /*
 * TYPE PROPERTIES
@@ -499,6 +532,22 @@ struct conditional{
 template<typename trueT, typename falseT>
 struct conditional<true, trueT, falseT>{
     typedef trueT type;
+};
+
+template<typename T>
+struct decay{
+    private:
+    typedef typename dp::remove_reference<T>::type U;
+    public:
+    typedef typename dp::conditional<
+        dp::is_array<U>::value, 
+        typename dp::add_pointer<typename dp::remove_extent<U>::type>::type,
+        typename dp::conditional<
+            dp::is_function<U>::value,
+            typename dp::add_pointer<U>::type,
+            typename dp::remove_cv<U>::type
+        >::type
+    >::type type;
 };
 
 template<typename T>

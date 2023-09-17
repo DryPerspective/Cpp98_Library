@@ -1,5 +1,5 @@
-#ifndef CPP98_RANGE_FUNCTIONS
-#define CPP98_RANGE_FUNCTIONS
+#ifndef DP_CPP98_RANGE_FUNCTIONS
+#define DP_CPP98_RANGE_FUNCTIONS
 
 #include <cstddef>
 #include <iterator>
@@ -7,7 +7,7 @@
 #include <string>       //String special cases
 
 #include "type_traits.h"
-#include "type_traits_ns.h"
+
 
 namespace dp{
     template<typename T>
@@ -246,7 +246,7 @@ namespace dp{
         };
         template<typename T>
         struct iter_type<T, true> {
-            typedef typename dp::detail:: decay_array<T>::type type;
+            typedef typename dp::decay<T>::type type;
         };
 
         template<typename T, bool = dp::is_array<T>::value>
@@ -255,7 +255,7 @@ namespace dp{
         };
         template<typename T>
         struct citer_type<T, true> {
-            typedef typename dp::detail::decay_array<typename dp::add_const<T>::type>::type type;
+            typedef typename dp::decay<typename dp::add_const<T>::type>::type type;
         };
 
         template<typename T, bool = dp::is_array<T>::value>
@@ -264,7 +264,7 @@ namespace dp{
         };
         template<typename T>
         struct riter_type<T, true> {
-            typedef typename std::reverse_iterator<typename dp::detail::decay_array<typename T>::type> type;
+            typedef typename std::reverse_iterator<typename dp::decay<typename T>::type> type;
         };
 
         template<typename T, bool = dp::is_array<T>::value>
@@ -273,7 +273,7 @@ namespace dp{
         };
         template<typename T>
         struct criter_type<T, true> {
-            typedef typename std::reverse_iterator<typename dp::detail::decay_array<typename dp::add_const<T>::type>::type> type;
+            typedef typename std::reverse_iterator<typename dp::decay<typename dp::add_const<T>::type>::type> type;
         };
 
     } 
