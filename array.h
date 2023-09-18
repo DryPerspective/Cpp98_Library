@@ -1,3 +1,6 @@
+#ifndef DP_CPP98_ARRAY
+#define DP_CPP98_ARRAY
+
 #include <cctype>
 #include <stdexcept>
 #include <algorithm>
@@ -178,3 +181,5 @@ void swap(array<T,N>& lhs, array<T,N>& rhs){
 }
 
 }
+
+#endif
