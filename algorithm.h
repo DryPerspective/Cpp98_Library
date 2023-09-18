@@ -1,9 +1,11 @@
-#ifndef CPP98_ALGORITHM
-#define CPP98_ALGORITHM
+#ifndef DP_CPP98_ALGORITHM
+#define DP_CPP98_ALGORITHM
 
 #include <algorithm>
 #include <iterator>
 #include <functional>
+
+#include "type_traits.h"
 
 /*
 *  The algorithms in the <algorithm> header which were added from C++11 onwards, recreated (where possible) here
@@ -81,8 +83,8 @@ namespace dp {
 		template<typename Iter>
 		typename dp::enable_if<dp::detail::is_iter_category<Iter, std::bidirectional_iterator_tag>::value, typename std::iterator_traits<Iter>::difference_type>::type 
 			bounded_advance(Iter& it, typename std::iterator_traits<Iter>::difference_type n, const Iter bound){
-			for (; n < 0 && it != bound; ++n, void(--i));
-			for (; n > 0 && it != bound; --n, void(++i));
+			for (; n < 0 && it != bound; ++n, void(--it));
+			for (; n > 0 && it != bound; --n, void(++it));
 
 			return n;
 		}
@@ -178,17 +180,28 @@ namespace dp {
 				++d_begin_false;
 			}
 		}
-		return std::pair<OutputIt1, OutputIt2>(d_first_true, d_first_false);
+		return std::pair<OutputIt1, OutputIt2>(d_begin_true, d_begin_false);
 	}
+
+    namespace detail{
+		//std::next is a C++11 feature, but I've not (yet) reimplemented the entire
+		//<iterator> header. For the time being, we keep it here, pending move to
+		//its own header when the time comes		
+        template<typename InputIt>
+			InputIt next(InputIt it, typename std::iterator_traits<InputIt>::difference_type n = 1){
+			std::advance(it, n);
+			return it;
+        }
+    }
 
 	template<typename ForwardIt, typename UnaryPredicate>
 	ForwardIt partition_point(ForwardIt begin, ForwardIt end, UnaryPredicate pred) {
 		typedef typename std::iterator_traits<ForwardIt>::difference_type diff_type;
 		for (diff_type length = std::distance(begin, end); length > 0;) {
 			diff_type half = length / 2;
-			ForwardIt mid = std::next(begin, half);
+			ForwardIt mid = dp::detail::next(begin, half);
 			if (pred(*mid)) {
-				begin = std::next(mid);
+				begin = dp::detail::next(mid);
 				length -= (half + 1);
 			}
 			else {
@@ -211,7 +224,7 @@ namespace dp {
 	}
 	template<typename ForwardIt>
 	ForwardIt is_sorted_until(ForwardIt begin, ForwardIt end) {
-		return dp::is_sorted_until(begin, end, std::less<>());
+		return dp::is_sorted_until(begin, end, std::less<typename std::iterator_traits<ForwardIt>::value_type>());
 	}
 
 	template<typename ForwardIt>
@@ -229,7 +242,7 @@ namespace dp {
 	}
 	template<typename T>
 	std::pair<const T&, const T&> minmax(const T& a, const T& b) {
-		return dp::minmax(a, b, std::less<>());
+		return dp::minmax(a, b, std::less<T>());
 	}
 
 	template<typename ForwardIt, typename Compare>
@@ -320,18 +333,20 @@ namespace dp {
 	}
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryPredicate>
 	bool is_permutation(ForwardIt1 begin, ForwardIt1 end, ForwardIt2 dest_begin, BinaryPredicate pred) {
-		return dp::is_permutation(begin, end, dest_begin, std::next(dest_begin, std::distance(begin, end)), pred);
+		return dp::is_permutation(begin, end, dest_begin, dp::detail::next(dest_begin, std::distance(begin, end)), pred);
 	}
 
 	template<typename ForwardIt1, typename ForwardIt2>
 	bool is_permutation(ForwardIt1 begin, ForwardIt1 end, ForwardIt2 dest_begin, ForwardIt2 dest_end) {
 		std::pair<ForwardIt1, ForwardIt2> common_prefix = std::mismatch(begin, end, dest_begin);
-		if (begin != end) {
+		begin = common_prefix.first;
+        dest_begin = common_prefix.second;
+                
+        if (begin != end) {
 			for (ForwardIt1 it = begin; it != end; ++it) {
 				if (it != std::find(begin, it, *it)) continue;
 
 				typedef typename std::iterator_traits<ForwardIt2>::difference_type diff_type;
-				diff_type count_in_dest = dp::detail::count_with_pred(dest_begin, dest_end, *it, pred);
 				diff_type count = std::count(dest_begin, dest_end, *it);
 				if (count == 0 || count != std::count(it, end, *it)) return false;
 
@@ -341,14 +356,12 @@ namespace dp {
 	}
 	template<typename ForwardIt1, typename ForwardIt2>
 	bool is_permutation(ForwardIt1 begin, ForwardIt1 end, ForwardIt2 dest_begin) {
-		return dp::is_permutation(begin, end, dest_begin, std::next(dest_begin, std::distance(begin, end)));
+		return dp::is_permutation(begin, end, dest_begin, dp::detail::next(dest_begin, std::distance(begin, end)));
 	}
 
 
 
 }
-
-
 
 
 #endif
