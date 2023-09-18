@@ -264,7 +264,7 @@ namespace dp{
         };
         template<typename T>
         struct riter_type<T, true> {
-            typedef typename std::reverse_iterator<typename dp::decay<typename T>::type> type;
+            typedef typename std::reverse_iterator<typename dp::decay<T>::type> type;
         };
 
         template<typename T, bool = dp::is_array<T>::value>
@@ -310,19 +310,7 @@ namespace dp{
         return in.data();
     }
 
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
 
 }
 
