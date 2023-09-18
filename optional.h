@@ -96,7 +96,11 @@ public:
 	
 	template<typename U>
     optional& operator=(const U& in) {
-		if (m_HasValue) storedObject() = in;
+		if (m_HasValue) {
+			using std::swap;
+			T copy(in);
+			swap(storedObject(), copy);
+		}
 		else{
 			new (m_Storage) T(in);
 			m_HasValue = true;

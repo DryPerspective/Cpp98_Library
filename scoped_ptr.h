@@ -1,5 +1,5 @@
-#ifndef CPP98_SCOPED_PTR
-#define CPP98_SCOPED_PTR
+#ifndef DP_CPP98_SCOPED_PTR
+#define DP_CPP98_SCOPED_PTR
 
 #include <cstddef>
 #include <algorithm>
@@ -48,6 +48,13 @@ namespace dp {
 			void delete_resource(ValT* in) {
 				m_deleter(in);
 			}
+
+			DelT& get_deleter_impl() {
+				return m_deleter;
+			}
+			const DelT& get_deleter_impl() const {
+				return m_deleter;
+			}
 		};
 		template<typename ValT, typename DelT>
 		struct deleter_holder<ValT, DelT, false> : DelT {
@@ -59,82 +66,109 @@ namespace dp {
 			void delete_resource(ValT* in) {
 				this->operator()(in);
 			}
+
+			DelT& get_deleter_impl() {
+				return static_cast<DelT&>(*this);
+			}
+			const DelT& get_deleter_impl() const {
+				return static_cast<DelT&>(*this);
+			}
 		};
+
+		//Since the majority of both versions of scoped_ptr are identical,
+		//we DRY off our code with a common base
+		template<typename T, typename Deleter = dp::default_delete<T> >
+		class scoped_ptr_base : detail::deleter_holder<T, Deleter> {
+		protected:
+			T* m_data;
+
+			//We explicitly forbid copying.
+			scoped_ptr_base(const scoped_ptr_base&);
+			scoped_ptr_base& operator=(const scoped_ptr_base&);
+
+			typedef const T* const_pointer;
+
+			~scoped_ptr_base() { this->reset(); }
+
+		public:
+
+			typedef T       element_type;
+			typedef T* pointer;
+			typedef Deleter deleter_type;
+
+			explicit scoped_ptr_base(T* in = NULL) : m_data(in) {}
+
+			explicit scoped_ptr_base(pointer in, deleter_type del_inst) : detail::deleter_holder<T, Deleter>(del_inst), m_data(in) {}
+
+			scoped_ptr_base& operator=(pointer in) {
+				this->reset(in);
+				return *this;
+			}
+
+
+
+			const T* get() const { return m_data; }
+			T* get() { return m_data; }
+
+			Deleter& get_deleter() { return this->get_deleter_impl(); }
+			const Deleter& get_deleter() const { return this->get_deleter_impl(); }
+
+			void swap(scoped_ptr_base& other) {
+				using std::swap;
+				swap(m_data, other.m_data);
+			}
+
+			//Release ownership of the resource and return the raw pointer to it.
+			pointer release() {
+				T* temp = m_data;
+				m_data = NULL;
+				return temp;
+			}
+
+			//Replace the resource we currently own with a new one
+			//Or just delete the resource we have
+			void reset(pointer in = NULL) {
+				if (m_data != in) {
+					this->delete_resource(m_data);
+					m_data = in;
+				}
+			}
+
+			operator bool() const {
+				return m_data;
+			}
+
+		};
+
 	}
 
+	/*
+	* And now all we need is to add our specific class instances with their specific interfaces
+	* Plus whatever C++98 requires of us
+	*/
+	template<typename T, typename Deleter>
+	class scoped_ptr : public dp::detail::scoped_ptr_base<T, Deleter> {
 
-	template<typename T, typename Deleter = dp::default_delete<T> >
-	class scoped_ptr : detail::deleter_holder<T, Deleter> {
-
-		T* m_data;
-
-		//We explicitly forbid copying.
-		scoped_ptr(const scoped_ptr&);
-		scoped_ptr& operator=(const scoped_ptr&);
+		typedef dp::detail::scoped_ptr_base<T, Deleter> Base;
 
 	public:
 
-		typedef T       element_type;
-		typedef T*		pointer;
-		typedef Deleter deleter_type;
+		//Alas no inheriting constructors in C++98
+		explicit scoped_ptr(T* in = NULL) : Base(in) {}
 
-		explicit scoped_ptr(T* in = NULL) : m_data(in) {}
+		explicit scoped_ptr(T* in, Deleter del_inst) : Base(in, del_inst) {}
 
-		explicit scoped_ptr(pointer in, deleter_type del_inst) : detail::deleter_holder<T, Deleter>(del_inst), m_data(in) {}
+		using Base::operator=;
 
-		scoped_ptr& operator=(pointer in) {
-			this->reset(in);
-			return *this;
-		}
-
-		~scoped_ptr() { this->reset(); }
-
-		void swap(scoped_ptr& other) {
-			using std::swap;
-			swap(this->get(), other.get());
-		}
-
-		const element_type& operator*() const { return *m_data; }
-		element_type& operator*() { return *m_data; }
-		const pointer operator->() const { return m_data; }
-		pointer operator->() { return m_data; }
-		const pointer get() const { return m_data; }
-		pointer get() { return m_data; }
-
-		//Get_deleter. Unfortunately we must do more template trickery to disambiguate whether to return a function pointer or a deleter class
-
-		template<bool = dp::is_pointer<Deleter>::value>
-		deleter_type& get_deleter() { return m_deleter; }
-		template<>
-		deleter_type& get_deleter<false>() { return static_cast<Deleter&>(*this); }
-
-		template<bool = dp::is_pointer<Deleter>::value>
-		const deleter_type& get_deleter() const { return m_deleter; }
-		template<>
-		const deleter_type& get_deleter<false>() const { return static_cast<Deleter&>(*this); }
-
-
-		//Release ownership of the resource and return the raw pointer to it.
-		pointer release() {
-			T* temp = m_data;
-			m_data = NULL;
-			return temp;
-		}
-
-		//Replace the resource we currently own with a new one
-		//Or just delete the resource we have
-		void reset(pointer in = NULL) {
-			if (m_data != in) {
-				this->delete_resource(m_data);
-				m_data = in;
-			}
-		}
-
-		operator bool() const {
-			return m_data;
-		}
+		const T& operator*() const { return *Base::m_data; }
+		T& operator*() { return *Base::m_data; }
+		const T* operator->() const { return Base::m_data; }
+		T* operator->() { return Base::m_data; }
 
 	};
+
+
+
 
 	/*
 	*   ARRAY VERSION
@@ -143,109 +177,27 @@ namespace dp {
 	*/
 
 	template<typename T, typename Deleter >
-	class scoped_ptr<T[], Deleter> : detail::deleter_holder<T, Deleter> {
+	class scoped_ptr<T[], Deleter> : public dp::detail::scoped_ptr_base<T, Deleter> {
 
-		T* m_data;
-
-		//Again we forbid copying
-		scoped_ptr(const scoped_ptr&);
-		scoped_ptr& operator=(const scoped_ptr&);
+		typedef dp::detail::scoped_ptr_base<T, Deleter> Base;
 
 	public:
 
-		typedef T       element_type;
-		typedef T*		pointer;
-		typedef Deleter deleter_type;
+		//Alas no inheriting constructors in C++98
+		explicit scoped_ptr(T* in = NULL) : Base(in) {}
 
-		explicit scoped_ptr(pointer in = NULL) : m_data(in) {}
+		explicit scoped_ptr(T* in, Deleter del_inst) : Base(in, del_inst) {}
 
-		explicit scoped_ptr(pointer in, deleter_type del_inst) : detail::deleter_holder<T, Deleter>(del_inst), m_data(in) {}
-
-		//We use the correct delete operator.
-		~scoped_ptr() {
-			this->reset();
-		}
-
-		scoped_ptr& operator=(pointer in) {
-			this->reset(in);
-			return *this;
-		}
-
-		void swap(scoped_ptr& other) {
-			using std::swap;
-			swap(this->get(), other.get());
-		}
+		using Base::operator=;
 
 		//Rather than dereference and pointer access operators, we provide array access
-		const element_type& operator[](std::size_t N) const {
-			return m_data[N];
+		const T*& operator[](std::size_t N) const {
+			return Base::m_data[N];
 		}
-		element_type& operator[](std::size_t N) {
-			return m_data[N];
+		T& operator[](std::size_t N) {
+			return Base::m_data[N];
 		}
-
-		//As before, offer functions to get, reset, and release
-		const pointer get() const {
-			return m_data;
-		}
-		pointer get() {
-			return m_data;
-		}
-
-		
-		template<bool = dp::is_pointer<Deleter>::value>
-		deleter_type& get_deleter() { return m_deleter; }
-		template<>
-		deleter_type& get_deleter<false>() { return static_cast<Deleter&>(*this); }
-
-		template<bool = dp::is_pointer<Deleter>::value>
-		const deleter_type& get_deleter() const { return m_deleter; }
-		template<>
-		const deleter_type& get_deleter<false>() const { return static_cast<Deleter&>(*this); }
-
-
-
-		pointer release() {
-			T* temp = m_data;
-			m_data = NULL;
-			return temp;
-		}
-
-		void reset(pointer in = NULL) {
-			if (m_data != in) {
-				this->delete_resource(m_data);
-				m_data = in;
-			}
-		}
-
-		operator bool() const {
-			return m_data;
-		}
-
 	};
-
-
-	//Freestanding make_scoped functions, mirroring std::make_unique and std::make_shared from C++11
-	//Set up so that updating to those pointers is a simple find and replace
-	//These make the allocation of a new resource and the binding it to a scoped_ptr an atomic operation to the caller
-	//Meaning that we should not leak even if the eval order messes around.
-	//enable_if to prevent dp::make_scoped<int[]> from picking this overload and going full UB.
-	template<typename T>
-	typename dp::enable_if<!dp::is_array<T>::value, dp::scoped_ptr<T> >::type make_scoped() {
-		return dp::scoped_ptr<T>(new T);
-	}
-
-	template<typename T, typename U>
-	dp::scoped_ptr<T> make_scoped(const U& in) {
-		return dp::scoped_ptr<T>(new T(in));
-	}
-
-	//Make_scoped functions for the array version
-	//Note no "default" option available for array types.
-	template<typename T>
-	dp::scoped_ptr<T[]> make_scoped(std::size_t N){
-		return dp::scoped_ptr<T[]>(new T[N]);
-	}
 
 
 	/*

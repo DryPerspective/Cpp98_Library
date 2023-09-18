@@ -115,7 +115,7 @@ namespace dp{
         return in.size();
     }
     template<typename T, std::size_t N>
-    std::size_t size(const T (&in)[N]){
+    std::size_t size(const T (&)[N]){
         return N;
     }
 
@@ -124,7 +124,7 @@ namespace dp{
         return in.size();
     }
     template<typename T, std::size_t N>
-    std::ptrdiff_t ssize(const T (&in)[N]){
+    std::ptrdiff_t ssize(const T (&)[N]){
         return N;
     }
 
@@ -133,7 +133,7 @@ namespace dp{
         return in.empty();
     }
     template<typename T, std::size_t N>
-    bool empty(const T (&in)[N]){
+    bool empty(const T (&)[N]){
         return N == 0;   //ISO C++ forbids a size zero array, but C doesn't.
                          //Feel free to edit this to return false if you're sure it won't be used that way
     }
