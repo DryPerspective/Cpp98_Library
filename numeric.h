@@ -1,5 +1,5 @@
-#ifndef CPP98_NUMERIC
-#define CPP98_NUMERIC
+#ifndef DP_CPP98_NUMERIC
+#define DP_CPP98_NUMERIC
 
 #include <cmath>
 
@@ -14,7 +14,7 @@ namespace dp {
 	*/
 
 template<typename ForwardIt, typename T>
-void iota(ForwardIt first, ForwardIt second, T value) {
+void iota(ForwardIt first, ForwardIt last, T value) {
 	while (first != last) {
 		*first++ = value;
 		++value;
