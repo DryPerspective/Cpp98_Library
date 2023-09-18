@@ -50,6 +50,8 @@ template<typename>
 struct is_member_pointer;
 
 namespace detail{
+    //Yes, technically utility.h contains declval and where it belongs.
+    //But to avoid a circular dependency (and until I restructure the project more cleanly) this stays here for now.
     template<typename T>
     typename add_lvalue_reference<T>::type declval();
 }

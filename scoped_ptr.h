@@ -77,7 +77,7 @@ namespace dp {
 
 		//Since the majority of both versions of scoped_ptr are identical,
 		//we DRY off our code with a common base
-		template<typename T, typename Deleter = dp::default_delete<T> >
+		template<typename T, typename Deleter>
 		class scoped_ptr_base : detail::deleter_holder<T, Deleter> {
 		protected:
 			T* m_data;
@@ -146,7 +146,7 @@ namespace dp {
 	* And now all we need is to add our specific class instances with their specific interfaces
 	* Plus whatever C++98 requires of us
 	*/
-	template<typename T, typename Deleter>
+	template<typename T, typename Deleter = dp::default_delete<T> >
 	class scoped_ptr : public dp::detail::scoped_ptr_base<T, Deleter> {
 
 		typedef dp::detail::scoped_ptr_base<T, Deleter> Base;
@@ -176,7 +176,7 @@ namespace dp {
 	*   There's no way for me to enforce that in this interface, so just don't be an idiot.
 	*/
 
-	template<typename T, typename Deleter >
+	template<typename T, typename Deleter>
 	class scoped_ptr<T[], Deleter> : public dp::detail::scoped_ptr_base<T, Deleter> {
 
 		typedef dp::detail::scoped_ptr_base<T, Deleter> Base;

@@ -11,6 +11,13 @@
 namespace dp {
 
 
+    template<typename T, typename U>
+    struct type_sizes {
+        typedef typename dp::conditional<sizeof(T) >= sizeof(U), T, U>::type larger;
+        typedef typename dp::conditional<sizeof(T) >= sizeof(U), U, T>::type smaller;
+    };
+
+
     /*
     *  A means to examine and extract the nth template type for a particular template
     *  This is done much more elegantly (and completely) in C++11 and above with variadics and tuples
