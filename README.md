@@ -4,11 +4,14 @@ Created because I spend a fair bit of time maintaining and adapting legacy code 
 
 This is a header-only library. The include directory should be added to your project's include path, with the cpp98 subdirectory containing the headers which should see the outside world and and the bits subdirectory following the gcc pattern of being internal files for the library.
 
+The code is designed to emulate the standard library as closely as is reasonable in this language standard. For example, if you want to use a std::array-style array, you would `#include "cpp98/array.h"` and construct it via `dp::array<foo,size> myarray = {....};`
+
 All tools in this repo exist in `namespace dp`
 
 ## List of Features
 * **algorithm** - Standard library algorithms added in C++11 and onwards, which would normally live in the `<algorithm>` header.
 * **array** - An analogue of `std::array`, sharing the same functionality and interface. 
+* **expected** - An analogue of `std::expected` - A type which contains either an expected value or an error value.
 * **numeric** - A light implementation of *some* of the functions added to the `<numeric>` header from C++11 and up. Does not include algorithms added for parallelisation purposes as C++98 has no standard concurrency primitives.
 * **optional** - An analogue of `std::optional` - a class which optionally contains a value on the stack, is in a well-defined state in all cases, and which does not construct a held value until it is required to hold one.
 * **range_functions** - Contains analogues of the C++11-C++17 "range access" functions : `std::begin()`; `std::end()`; c-, r-, and cr- versions of the same; `std::size()`, `std::ssize()`, `std::empty()`, and `std::data()`. This also adds some generic iterator types to complement use of `dp::begin()` etc in a generic way; which can be safely replaced by `auto` on a future standard.

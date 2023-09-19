@@ -12,4 +12,4 @@
 *.vcxproj
 *.filters
 *.user
-/rc_base.cpp
+/include/testing

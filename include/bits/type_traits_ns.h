@@ -13,8 +13,10 @@ namespace dp {
 
     template<typename T, typename U>
     struct type_sizes {
-        typedef typename dp::conditional<sizeof(T) >= sizeof(U), T, U>::type larger;
-        typedef typename dp::conditional<sizeof(T) >= sizeof(U), U, T>::type smaller;
+        typedef typename dp::conditional<sizeof(T) >= sizeof(U), T, U>::type larger_type;
+        typedef typename dp::conditional<sizeof(T) >= sizeof(U), U, T>::type smaller_type;
+        static const std::size_t larger_size = sizeof(larger_type);
+        static const std::size_t smaller_size = sizeof(smaller_type);
     };
 
 
