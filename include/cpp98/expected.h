@@ -68,6 +68,12 @@ namespace dp{
             return *reinterpret_cast<const ErrT*>(Base::m_Storage);
         }
 
+        void reset() {
+            if (this->has_value()) this->storedObject().~ValT();
+            else storedError().~ErrT();
+            this->m_HasValue = false;
+        }
+
 
 
     public:
@@ -164,12 +170,6 @@ namespace dp{
 
         const ErrT& error() const{
             return this->storedError();
-        }
-
-        void reset(){
-            if(this->has_value()) this->storedObject().~ValT();
-            else storedError().~ErrT();
-            this->m_HasValue = false;
         }
 
         void swap(expected<ValT,ErrT>& other){
