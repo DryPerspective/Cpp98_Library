@@ -194,6 +194,19 @@ namespace dp{
 
     };
 
+    //Undefined to prevent use
+    template<typename T, typename ErrT>
+    class expected<dp::unexpected<T>, ErrT>;
+
+    template<typename ValT, typename ErrT>
+    class expected<ValT&, ErrT>;
+
+    template<typename ValT, typename ErrT>
+    class expected<ValT, ErrT&>;
+
+    template<typename ValT, typename ErrT>
+    class expected<ValT&, ErrT&>;
+
     template<typename ValT, typename ErrT>
     void swap(dp::expected<ValT,ErrT>& lhs, dp::expected<ValT,ErrT>& rhs){
         lhs.swap(rhs);
