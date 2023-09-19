@@ -18,8 +18,8 @@ A writeup of all the features can be found on [the project's wiki](https://githu
 * numeric
 * optional 
 * range_functions
-* **ratio
-* rc_base** 
+* ratio
+* rc_base 
 * rc_ptr 
 * scoped_ptr
 * static_assert 
