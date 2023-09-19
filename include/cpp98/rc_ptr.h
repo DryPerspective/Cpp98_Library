@@ -1,7 +1,7 @@
-#ifndef CPP98_RC_PTR
-#define CPP98_RC_PTR
+#ifndef DP_CPP98_RC_PTR
+#define DP_CPP98_RC_PTR
 
-#include "rc_base.h"
+#include "cpp98/rc_base.h"
 
 #include <cassert>
 

@@ -1,6 +1,8 @@
 # Cpp98_Tools
-A small collection of tools which are compatible with the C++98 standard as well as all future standards. Most of these tools accomplish something which was added in a future standard (e.g. Optional is an analogue of `std::optional`), and I will recommend that if you are using them and you update to a lanugage standard which supports that feature you swap out the tool accordingly - I have designed the interfaces of these tools to make it as painless a process as possible.
+A small collection of tools which are compatible with the C++98 standard as well as all future standards. Most of these tools accomplish something which was added in a future standard (e.g. `dp::optional` is an analogue of `std::optional`), and I will recommend that if you are using them and you update to a lanugage standard which supports that feature you swap out the tool accordingly - I have designed the interfaces of these tools to make it as painless a process as possible.
 Created because I spend a fair bit of time maintaining and adapting legacy code which for various reasons cannot be updated to modern C++.
+
+This is a header-only library. The include directory should be added to your project's include path, with the cpp98 subdirectory containing the headers which should see the outside world and and the bits subdirectory following the gcc pattern of being internal files for the library.
 
 All tools in this repo exist in `namespace dp`
 
@@ -16,7 +18,6 @@ All tools in this repo exist in `namespace dp`
 * **scoped_ptr** - A unique-owning, scope-local smart pointer. An analogue of `std::unique_ptr`, but of course without move semantics. Supports single-object and array versions as well as a `make_scoped` function (analogue of `std::make_unique`) and custom deleters, for both single value and array types.
 * **static_assert** - A basic but effective replacement for the `static_assert` keyword. As we are replacing a keyword with a class (and to avoid naming collisions with the keyword), the syntax is a little different. An expression `dp::static_assert_98<condition>()` will assert `condition` at compile time. It also includes a macro `STATIC_ASSERT(condition)`. The macro will not be defined if `STATIC_ASSERT` is already defined elsewhere by some other header, and can be suppressed entirely by defining `DP_NO_ASSERT_MACRO`.
 * **type_traits** - A recreation of many of the standard type traits from the standard type_traits header. It is unfortunately missing a few key elements such as `_t` and `_v` helpers and a few traits; however these rely on either language features added in future standards or compiler intrinsics/compiler magic to function so cannot be recreated here.
-* **type_traits_ns** - A collection of **n**on-**s**tandard general-purpose type traits which support other parts of this repo; but which are not specified to appear in the modern `<type_traits>` header. While they will be needed for some other headers in in the repo to function; the decision was made to relegate them to their own place, over either polluting `type_traits.h` with random traits or filling the particular headers which use them with general purpose traits and hoping that they're not also needed elsewhere.
 * **utility** - A recreation of the modern features in the `<utility>` header, not counting functionality around move semantics, or functions like `std::unreachable` which are compiler magic.
 
 ## FAQ

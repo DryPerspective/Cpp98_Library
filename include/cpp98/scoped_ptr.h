@@ -38,48 +38,10 @@ namespace dp {
 	};
 
 	namespace detail {
-		template<typename ValT, typename DelT, bool = dp::is_pointer<DelT>::value>
-		struct deleter_holder {
-		protected:
-			DelT m_deleter;
-
-			template<typename T>
-			deleter_holder(T in) : m_deleter(in) {}
-
-			void delete_resource(ValT* in) {
-				m_deleter(in);
-			}
-
-			DelT& get_deleter_impl() {
-				return m_deleter;
-			}
-			const DelT& get_deleter_impl() const {
-				return m_deleter;
-			}
-		};
-		template<typename ValT, typename DelT>
-		struct deleter_holder<ValT, DelT, false> : DelT {
-		protected:
-			deleter_holder() {}
-
-			deleter_holder(const DelT& del) : DelT(del) {}
-
-			void delete_resource(ValT* in) {
-				this->operator()(in);
-			}
-
-			DelT& get_deleter_impl() {
-				return static_cast<DelT&>(*this);
-			}
-			const DelT& get_deleter_impl() const {
-				return static_cast<DelT&>(*this);
-			}
-		};
-
 		//Since the majority of both versions of scoped_ptr are identical,
 		//we DRY off our code with a common base
 		template<typename T, typename Deleter>
-		class scoped_ptr_base : detail::deleter_holder<T, Deleter> {
+		class scoped_ptr_base : dp::detail::deleter_holder<T, Deleter> {
 		protected:
 			T* m_data;
 
@@ -140,10 +102,13 @@ namespace dp {
 			}
 
 		};
-
 	}
 
+	
+
 	/*
+	* Bits/smart_ptr_bases.h contains the shared functionality/base classes of all our smart pointer classes, placed there because both this and future smart pointers
+	* May need stateful deleters.
 	* And now all we need is to add our specific class instances with their specific interfaces
 	* Plus whatever C++98 requires of us
 	*/

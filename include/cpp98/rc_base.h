@@ -1,7 +1,7 @@
 
 
-#ifndef CPP98_RC_BASE
-#define CPP98_RC_BASE
+#ifndef DP_CPP98_RC_BASE
+#define DP_CPP98_RC_BASE
 
 #include <cstddef>  //For formal declaration of the std::size_t typedef
 
@@ -19,15 +19,25 @@ class rc_base{
 	protected:
 	rc_base() : m_RefCount(0), m_Shareable(true) {}
 	rc_base(const rc_base&) : m_RefCount(0), m_Shareable(true) {}
-	rc_base& operator=(const rc_base&);
+	inline rc_base& operator=(const rc_base&) {
+		return *this;
+	}
 	virtual ~rc_base() = 0;
 
 	public:
-	void addRef();
-	void removeRef();
+	inline void addRef() {
+			++m_RefCount;
+	}
+	inline void removeRef() {
+		if (--m_RefCount == 0) delete this;
+	}
 
-	void makeUnshareable();
-	bool isShared() const;
+	inline void makeUnshareable() {
+		m_Shareable = false;
+	}
+	inline bool isShared() const {
+		return m_RefCount > 0;
+	}
 };
 
 }
