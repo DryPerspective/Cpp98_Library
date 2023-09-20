@@ -44,7 +44,10 @@ namespace dp {
 
     class UnicodeString_view : public dp::wstring_view {
 
-        typedef dp::wstring_view Base;
+		typedef dp::wstring_view Base;
+
+        //To prevent implicit conversions to a temporary Unicodestring, and lifetime issues.
+		UnicodeString_view(const char*);
 
     public:
 
@@ -55,6 +58,8 @@ namespace dp {
 		UnicodeString_view(const std::wstring& str) : Base(str) {}
 
 		UnicodeString_view(const System::UnicodeString& str) : Base(str.c_str()) {}
+
+
 
 
 		using Base::operator=;
@@ -77,6 +82,27 @@ namespace dp {
 
     inline const wchar_t* data(const System::UnicodeString& in) {
         return in.c_str();
+    }
+
+    inline bool empty(const System::AnsiString& in) {
+        return in.IsEmpty();
+    }
+    inline bool empty(const System::UnicodeString& in) {
+        return in.IsEmpty();
+    }
+
+    inline std::size_t size(const System::AnsiString& in) {
+        return in.Length();
+    }
+    inline std::size_t size(const System::UnicodeString& in) {
+        return in.Length();
+    }
+
+    inline std::ptrdiff_t ssize(const System::AnsiString& in) {
+        return in.Length();
+    }
+    inline std::ptrdiff_t ssize(const System::UnicodeString& in) {
+        return in.Length();
     }
 
 

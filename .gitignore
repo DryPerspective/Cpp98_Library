@@ -16,3 +16,6 @@
 /include/borland/__history
 /include/cpp98/__history
 /include/bits/__history
+/include/cpp98/__recovery
+/include/bits/__recovery
+/include/borland/__recovery
