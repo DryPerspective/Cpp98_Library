@@ -394,6 +394,11 @@ namespace dp{
         return std::basic_string<CharT, Traits>(lhs) += rhs;
     }
 
+    template<typename CharT, typename Traits>
+    void swap(dp::basic_string_view<CharT, Traits>& lhs, dp::basic_string_view<CharT, Traits>& rhs) {
+        lhs.swap(rhs);
+    }
+
 }
 
 #endif
