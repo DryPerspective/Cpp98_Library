@@ -19,7 +19,7 @@ namespace dp {
 
 
 	template<typename T>
-	typename dp::add_const<T>::type as_const(T& in) {
+	typename dp::add_const<T>::type& as_const(T& in) {
 		return in;
 	}
 
