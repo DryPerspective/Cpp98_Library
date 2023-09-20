@@ -27,4 +27,7 @@ A writeup of all the features can be found on [the project's wiki](https://githu
 * type_traits 
 * utility
 
+As a side note, this library also provides an entirely separate header which contains string_view types for the Borland `UnicodeString` and `AnsiString` types.
+
+
 

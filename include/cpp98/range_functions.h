@@ -296,21 +296,6 @@ namespace dp{
 
 
 
-    /*
-    *  I personally work a lot in Embarcadero C++Builder (using an old Borland compiler), and expecting the string types there to match the general pattern the standard sets us to follow is a fool's errand
-    *  So, I need specialisations for the types used there.
-    */
-#ifdef __BORLANDC__
-
-    const char* data(const System::AnsiString& in) {
-        return in.data();      //Embarcadero return a nullpointer in the empty case rather than an emtpy string for data(); so we use c_str().
-    }
-
-    const wchar_t* data(const System::UnicodeString& in) {
-        return in.data();
-    }
-
-#endif
 
 }
 

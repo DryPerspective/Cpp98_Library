@@ -33,14 +33,19 @@ namespace dp{
         typedef std::reverse_iterator<iterator>         reverse_iterator;
         typedef std::reverse_iterator<const_iterator>   const_reverse_iterator;
 
-        basic_string_view() : ptr(NULL,0) {}
+        static const size_type npos = std::basic_string<CharT, Traits>::npos;
+
+        basic_string_view() : ptr(NULL, 0) {}
         basic_string_view(const basic_string_view& other) : ptr(other.ptr) {}
         basic_string_view(const CharT* begin, size_type size) : ptr(begin, size) {}
         basic_string_view(const CharT* begin) : ptr(begin, Traits::length(begin)) {}
         //We can't take the standard way of attaching a converting operator to std::string
         basic_string_view(const std::basic_string<CharT, Traits>& str) : ptr(str.data(), str.size()) {}
 
-        static const size_type npos = std::basic_string<CharT, Traits>::npos;
+        basic_string_view& operator=(const basic_string_view& other) {
+            ptr = other.ptr;
+            return *this;
+        }
 
         iterator begin() const{
             return ptr;

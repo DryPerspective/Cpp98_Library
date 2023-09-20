@@ -12,6 +12,9 @@
 *   To be precise - is_union is compiler magic. is_class requires a check against !is_union.
 *   implementing is_class without that check is possible, but will produce different results from
 *   std::is_class in some circumstances - not good.
+* 
+*   You may notice some macros on array-type traits in this file. This is because I've found that Borland's compiler
+*   in it's pre-modern-C++ versions have trouble with those (perfectly valid) templates.
 */
 
 #include <cctype>
@@ -106,12 +109,16 @@ struct is_floating_point : integral_constant<bool,
                     is_same<typename remove_cv<T>::type, double>::value ||
                     is_same<typename remove_cv<T>::type, long double>::value> {};
 
+
 template<typename T>
 struct is_array : false_type {};
 template<typename T>
 struct is_array<T[]> : true_type {};
+#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
 template<typename T, std::size_t N>
 struct is_array<T[N]> : true_type {};
+#endif
+
 
 template<typename T>
 struct is_function : dp::integral_constant<bool, !dp::is_const<const T>::value && !dp::is_reference<T>::value> {};
@@ -342,8 +349,11 @@ template<typename T>
 struct rank : integral_constant<std::size_t, 0> {};
 template<typename T>
 struct rank<T[]> : integral_constant<std::size_t, rank<T>::value + 1> {};
+#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
 template<typename T, std::size_t N>
 struct rank<T[N]> : integral_constant<std::size_t, rank<T>::value + 1> {};
+#endif
+
 
 template<typename T, unsigned int N = 0>
 struct extent : integral_constant<std::size_t, 0> {};
@@ -351,10 +361,12 @@ template<typename T>
 struct extent<T[], 0> : integral_constant<std::size_t, 0> {};
 template<typename T, unsigned int N>
 struct extent<T[], N> : extent<T, N - 1> {};
+#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
 template<typename T, std::size_t I>
 struct extent<T[I], 0> : integral_constant<std::size_t, I> {};
 template<typename T, std::size_t I, unsigned int N>
 struct extent<T[I], N> : extent<T, N - 1> {};
+#endif
 
 
 /*
@@ -467,10 +479,12 @@ template<typename T>
 struct remove_extent<T[]>{
     typedef T type;
 };
+#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
 template<typename T, std::size_t N>
 struct remove_extent<T[N]>{
-    typedef T type;
+	typedef T type;
 };
+#endif
 
 template<typename T>
 struct remove_all_extents{
@@ -479,11 +493,13 @@ struct remove_all_extents{
 template<typename T>
 struct remove_all_extents<T[]> {
     typedef typename remove_all_extents<T>::type type;
-}; 
+};
+#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
 template<typename T, std::size_t N>
 struct remove_all_extents<T[N]> {
-    typedef typename remove_all_extents<T>::type type;
+	typedef typename remove_all_extents<T>::type type;
 };
+#endif
 
 /*
 * POINTER TYPES
@@ -592,13 +608,15 @@ namespace detail{
     template<>
     struct make_signed<unsigned long, false>{
         typedef signed long type;
-    };
+	};
+#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
     //Char types have a specific form of conversion we need
     //char avoid this by having signed and unsigned variants; wchar_t does not
     template<>
     struct make_signed<wchar_t, false>{
         typedef typename conditional<sizeof(int) >= sizeof(wchar_t), signed int, signed long>::type type;
-    };
+	};
+#endif
 }
 
 template<typename T>
@@ -626,12 +644,14 @@ namespace detail{
     template<>
     struct make_unsigned<signed long, false>{
         typedef unsigned long type;
-    };
-    template<>
-    struct make_unsigned<wchar_t, false>{
-        typedef typename conditional<sizeof(unsigned int) >= sizeof(wchar_t), 
-                                        unsigned int, unsigned long>::type type;
-    };
+	};
+#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
+	template<>
+	struct make_unsigned<wchar_t, false>{
+		typedef typename conditional<sizeof(unsigned int) >= sizeof(wchar_t),
+										unsigned int, unsigned long>::type type;
+	};
+#endif
 }
 
 template<typename T>

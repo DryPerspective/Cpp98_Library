@@ -13,3 +13,6 @@
 *.filters
 *.user
 /include/testing
+/include/borland/__history
+/include/cpp98/__history
+/include/bits/__history
