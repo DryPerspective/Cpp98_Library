@@ -404,6 +404,12 @@ namespace dp{
         lhs.swap(rhs);
     }
 
+    //Overload because strings are a special case and want const-qualified pointers, always.
+    template<typename CharT, typename Traits>
+    typename dp::basic_string_view<CharT, Traits>::const_pointer data(dp::basic_string_view<CharT, Traits> in) {
+        return in.data();
+    }
+
 }
 
 #endif

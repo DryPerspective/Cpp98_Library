@@ -65,10 +65,12 @@ namespace dp {
 
     };
 
-
-
-
-
+    inline const char* data(dp::AnsiString_view in) {
+        return in.data();
+    }
+    inline const wchar_t* data(dp::UnicodeString_view in) {
+        return in.data();
+    }
     inline const char* data(const System::AnsiString& in) {
 		return in.c_str();      //We use c_str() because .data() returns a const void* in Borland world.
     }

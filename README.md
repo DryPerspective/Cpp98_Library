@@ -1,5 +1,5 @@
-# Cpp98_Tools
-A small collection of tools which are compatible with the C++98 standard as well as all future standards. Most of these tools accomplish something which was added in a future standard (e.g. `dp::optional` is an analogue of `std::optional`), and I will recommend that if you are using them and you update to a lanugage standard which supports that feature you swap out the tool accordingly - I have designed the interfaces of these tools to make it as painless a process as possible.
+# Cpp98_Library
+A collection of tools which represent a large chunk of the modern C++ standard library, written in ISO C++98, and compatible with all future C++ standards. While I cannot recreate features which rely on core language features, much of the STL is implementable in C++98; though my general recommendation is to use an official stdlib distribution over this if you are on a modern C++ standard which has access to those features.
 Created because I spend a fair bit of time maintaining and adapting legacy code which for various reasons cannot be updated to modern C++.
 
 This is a header-only library. The include directory should be added to your project's include path, with the cpp98 subdirectory containing the headers which should see the outside world and and the bits subdirectory following the gcc pattern of being internal files for the library.
