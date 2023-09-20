@@ -40,7 +40,6 @@ namespace dp{
         //We can't take the standard way of attaching a converting operator to std::string
         basic_string_view(const std::basic_string<CharT, Traits>& str) : ptr(str.data(), str.size()) {}
 
-
         static const size_type npos = std::basic_string<CharT, Traits>::npos;
 
         iterator begin() const{
@@ -302,12 +301,14 @@ namespace dp{
         size_type find_last_not_of(const CharT* s, size_type pos = npos) const{
             return find_last_not_of(basic_string_view(s), pos);
         }
+
+        operator std::basic_string<CharT, Traits>() const{
+            return std::basic_string<CharT, Traits>(begin(), end());
+        }
     };
 
     typedef basic_string_view<char>     string_view;
     typedef basic_string_view<wchar_t>  wstring_view;
-
-
 
 
     template<typename CharT, typename Traits>
@@ -368,6 +369,30 @@ namespace dp{
         return os;
     }
 
+    template<typename CharT, typename Traits>
+    std::basic_string<CharT, Traits> operator+=(std::basic_string<CharT, Traits>&  lhs, dp::basic_string_view<CharT, Traits> rhs){
+        return lhs += std::basic_string<CharT, Traits>(rhs);
+    }
+    template<typename CharT, typename Traits>
+    std::basic_string<CharT, Traits> operator+(std::basic_string<CharT, Traits> lhs, dp::basic_string_view<CharT, Traits> rhs){
+        return lhs += rhs;
+    }
+    template<typename CharT, typename Traits>
+    std::basic_string<CharT, Traits> operator+=(dp::basic_string_view<CharT, Traits> lhs, const std::basic_string<CharT, Traits>& rhs){
+        return std::basic_string<CharT, Traits>(lhs) += rhs;
+    }
+    template<typename CharT, typename Traits>
+    std::basic_string<CharT, Traits> operator+(dp::basic_string_view<CharT, Traits> lhs, const std::basic_string<CharT, Traits>& rhs){
+        return lhs += rhs; //We're copying lhs anyway so these two end up equivalent
+    }
+    template<typename CharT, typename Traits>
+    std::basic_string<CharT, Traits> operator+=(dp::basic_string_view<CharT, Traits> lhs, dp::basic_string_view<CharT, Traits> rhs){
+        return std::basic_string<CharT, Traits>(lhs) += rhs;
+    }
+    template<typename CharT, typename Traits>
+    std::basic_string<CharT, Traits> operator+(dp::basic_string_view<CharT, Traits> lhs, dp::basic_string_view<CharT, Traits> rhs){
+        return std::basic_string<CharT, Traits>(lhs) += rhs;
+    }
 
 }
 
