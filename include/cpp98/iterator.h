@@ -22,13 +22,13 @@ namespace dp {
 
     template<typename Iter>
     class counted_iterator {
-        Iter                                                 current;
-        typename std::iterator_traits<Iter>::difference_type length;
+        Iter                                                 m_current;
+        typename std::iterator_traits<Iter>::difference_type m_length;
 
         void swap(counted_iterator& lhs, counted_iterator& rhs) {
             using std::swap;
-            swap(current, rhs.current());
-            swap(length, rhs.length());
+            swap(m_current, rhs.m_current());
+            swap(m_length, rhs.m_length());
         }
 
     public:
@@ -36,10 +36,10 @@ namespace dp {
         typedef typename std::iterator_traits<Iter>::value_type      value_type;
         typedef Iter                                                 iterator_type;
 
-        counted_iterator() : length(0) {}
-        counted_iterator(Iter x, difference_type count) : current(x), length(count) {}
+        counted_iterator() : m_length(0) {}
+        counted_iterator(Iter x, difference_type count) : m_current(x), m_length(count) {}
         template<typename U>
-        counted_iterator(const counted_iterator<U>& other) : current(other.base()), length(other.count()) {}
+        counted_iterator(const counted_iterator<U>& other) : m_current(other.base()), m_length(other.count()) {}
 
         template<typename U>
         counted_iterator& operator=(const counted_iterator<U>& other) {
@@ -49,29 +49,29 @@ namespace dp {
         }
 
         const Iter& base() const {
-            return current;
+            return m_current;
         }
         difference_type count() const {
-            return length;
+            return m_length;
         }
 
         typename dp::conditional<dp::is_const<typename dp::remove_pointer<const int*>::type>::value, const value_type&, value_type&>::type
             operator*() {
-            return *current;
+            return *m_current;
         }
         const value_type& operator*() const {
-            return *current;
+            return *m_current;
         }
         iterator_type operator->() const {
-            return &current;
+            return &m_current;
         }
         const value_type& operator[](difference_type index) const {
             return this->base()[index];
         }
 
         counted_iterator& operator++() {
-            ++current;
-            --length;
+            ++m_current;
+            --m_length;
             return *this;
         }
         counted_iterator operator++(int) {
@@ -80,8 +80,8 @@ namespace dp {
             return copy;
         }
         counted_iterator& operator--() {
-            --current;
-            ++length;
+            --m_current;
+            ++m_length;
             return *this;
         }
         counted_iterator operator--(int) {
