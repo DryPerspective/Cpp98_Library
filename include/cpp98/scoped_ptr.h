@@ -104,7 +104,7 @@ namespace dp {
 		};
 	}
 
-	
+
 
 	/*
 	* Bits/smart_ptr_bases.h contains the shared functionality/base classes of all our smart pointer classes, placed there because both this and future smart pointers
@@ -206,6 +206,178 @@ namespace dp {
 	bool operator>=(const dp::scoped_ptr<T1, D1>& lhs, const dp::scoped_ptr<T2, D2>& rhs) {
 		return !(lhs < rhs);
 	}
+
+
+	/*
+	*  LITE POINTER
+	*  For cases where you don't get EBO and sizeof(smart_pointer<T> == sizeof(T*) must hold
+	*  WET but we can't inherit or compose
+	*/
+	template<typename T>
+	class lite_ptr {
+		T* m_data;
+
+		//We explicitly forbid copying.
+		lite_ptr(const lite_ptr&);
+		lite_ptr& operator=(const lite_ptr&);
+
+		typedef const T* const_pointer;
+
+	public:
+		typedef T       element_type;
+		typedef T* pointer;
+
+		explicit lite_ptr(T* in = NULL) : m_data(in) {}
+
+		~lite_ptr() {
+			delete m_data;
+		}
+
+
+		lite_ptr& operator=(pointer in) {
+			this->reset(in);
+			return *this;
+		}
+
+		const T* get() const { return m_data; }
+		T* get() { return m_data; }
+
+		void swap(lite_ptr& other) {
+			using std::swap;
+			swap(m_data, other.m_data);
+		}
+
+		//Release ownership of the resource and return the raw pointer to it.
+		pointer release() {
+			T* temp = m_data;
+			m_data = NULL;
+			return temp;
+		}
+
+		const T& operator*() const { return *m_data; }
+		T& operator*() { return *m_data; }
+		const T* operator->() const { return m_data; }
+		T* operator->() { return m_data; }
+
+		//Replace the resource we currently own with a new one
+		//Or just delete the resource we have
+		void reset(pointer in = NULL) {
+			if (m_data != in) {
+				this->delete_resource(m_data);
+				m_data = in;
+			}
+		}
+
+		operator bool() const {
+			return m_data;
+		}
+
+	};
+	template<typename T>
+	class lite_ptr<T[]> {
+		T* m_data;
+
+		//We explicitly forbid copying.
+		lite_ptr(const lite_ptr&);
+		lite_ptr& operator=(const lite_ptr&);
+
+		typedef const T* const_pointer;
+
+	public:
+		typedef T       element_type;
+		typedef T* pointer;
+
+		explicit lite_ptr(T* in = NULL) : m_data(in) {}
+
+		~lite_ptr() {
+			delete[] m_data;
+		}
+
+
+		lite_ptr& operator=(pointer in) {
+			this->reset(in);
+			return *this;
+		}
+
+		const T* get() const { return m_data; }
+		T* get() { return m_data; }
+
+		void swap(lite_ptr& other) {
+			using std::swap;
+			swap(m_data, other.m_data);
+		}
+
+		//Release ownership of the resource and return the raw pointer to it.
+		pointer release() {
+			T* temp = m_data;
+			m_data = NULL;
+			return temp;
+		}
+
+		//Rather than dereference and pointer access operators, we provide array access
+		const T*& operator[](std::size_t N) const {
+			return m_data[N];
+		}
+		T& operator[](std::size_t N) {
+			return m_data[N];
+		}
+
+		//Replace the resource we currently own with a new one
+		//Or just delete the resource we have
+		void reset(pointer in = NULL) {
+			if (m_data != in) {
+				this->delete_resource(m_data);
+				m_data = in;
+			}
+		}
+
+		operator bool() const {
+			return m_data;
+		}
+
+	};
+
+	/*
+	* UTILITY FUNCTIONS
+	*/
+	template<typename T>
+	void swap(dp::lite_ptr<T>& lhs, dp::lite_ptr<T>& rhs) {
+		lhs.swap(rhs);
+	}
+	template<typename CharT, typename Traits, typename T>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const dp::lite_ptr<T>& ptr) {
+		os << ptr.get();
+		return os;
+	}
+
+	/*
+	* COMPARISON OPERATORS
+	*/
+	template<typename T1, typename T2>
+	bool operator==(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+		return lhs.get() == rhs.get();
+	}
+	template<typename T1, typename T2>
+	bool operator!=(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+		return !(lhs == rhs);
+	}
+	template<typename T1, typename T2>
+	bool operator<(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+		return lhs.get() < rhs.get();
+	}
+	template<typename T1, typename T2>
+	bool operator<=(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+		return !(rhs < lhs);
+	}
+	template<typename T1, typename T2>
+	bool operator>(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+		return rhs < lhs;
+	}
+	template<typename T1, typename T2>
+	bool operator>=(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+		return !(lhs < rhs);
+	}
+
 
 }
 
