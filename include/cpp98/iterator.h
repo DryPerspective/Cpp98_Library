@@ -20,6 +20,87 @@
 namespace dp {
 
 
+    template<typename Iter>
+    class counted_iterator {
+        Iter                                                 current;
+        typename std::iterator_traits<Iter>::difference_type length;
+
+        void swap(counted_iterator& lhs, counted_iterator& rhs) {
+            using std::swap;
+            swap(current, rhs.current());
+            swap(length, rhs.length());
+        }
+
+    public:
+        typedef typename std::iterator_traits<Iter>::difference_type difference_type;
+        typedef typename std::iterator_traits<Iter>::value_type      value_type;
+        typedef Iter                                                 iterator_type;
+
+        counted_iterator() : length(0) {}
+        counted_iterator(Iter x, difference_type count) : current(x), length(count) {}
+        template<typename U>
+        counted_iterator(const counted_iterator<U>& other) : current(other.base()), length(other.count()) {}
+
+        template<typename U>
+        counted_iterator& operator=(const counted_iterator<U>& other) {
+            counted_iterator copy(other);
+            this->swap(copy);
+            return *this;
+        }
+
+        const Iter& base() const {
+            return current;
+        }
+        difference_type count() const {
+            return length;
+        }
+
+        typename dp::conditional<dp::is_const<typename dp::remove_pointer<const int*>::type>::value, const value_type&, value_type&>::type
+            operator*() {
+            return *current;
+        }
+        const value_type& operator*() const {
+            return *current;
+        }
+        iterator_type operator->() const {
+            return &current;
+        }
+        const value_type& operator[](difference_type index) const {
+            return this->base()[index];
+        }
+
+        counted_iterator& operator++() {
+            ++current;
+            --length;
+            return *this;
+        }
+        counted_iterator operator++(int) {
+            counted_iterator copy(*this);
+            ++*this;
+            return copy;
+        }
+        counted_iterator& operator--() {
+            --current;
+            ++length;
+            return *this;
+        }
+        counted_iterator operator--(int) {
+            counted_iterator copy(*this);
+            --*this;
+            return copy;
+        }
+    };
+
+    template<typename Iter>
+    bool operator==(const counted_iterator<Iter>& lhs, const counted_iterator<Iter>& rhs) {
+        return lhs.count() == rhs.count();
+    }
+    template<typename Iter>
+    bool operator!=(const counted_iterator<Iter>& lhs, const counted_iterator<Iter>& rhs) {
+        return !(lhs == rhs);
+    }
+
+
     /*
     *   ITERATOR FUNCTIONS
     */
