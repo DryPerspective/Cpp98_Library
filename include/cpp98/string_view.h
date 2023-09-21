@@ -8,7 +8,7 @@
 #include <string>
 #include <ostream>
 
-#include "cpp98/range_functions.h"
+#include "cpp98/iterator.h"
 #include "bits/fat_pointer.h"
 
 

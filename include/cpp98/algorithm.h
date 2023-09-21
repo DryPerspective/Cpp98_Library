@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "cpp98/type_traits.h"
+#include "cpp98/iterator.h"
 
 /*
 *  The algorithms in the <algorithm> header which were added from C++11 onwards, recreated (where possible) here
@@ -183,25 +184,15 @@ namespace dp {
 		return std::pair<OutputIt1, OutputIt2>(d_begin_true, d_begin_false);
 	}
 
-    namespace detail{
-		//std::next is a C++11 feature, but I've not (yet) reimplemented the entire
-		//<iterator> header. For the time being, we keep it here, pending move to
-		//its own header when the time comes		
-        template<typename InputIt>
-			InputIt next(InputIt it, typename std::iterator_traits<InputIt>::difference_type n = 1){
-			std::advance(it, n);
-			return it;
-        }
-    }
 
 	template<typename ForwardIt, typename UnaryPredicate>
 	ForwardIt partition_point(ForwardIt begin, ForwardIt end, UnaryPredicate pred) {
 		typedef typename std::iterator_traits<ForwardIt>::difference_type diff_type;
 		for (diff_type length = std::distance(begin, end); length > 0;) {
 			diff_type half = length / 2;
-			ForwardIt mid = dp::detail::next(begin, half);
+			ForwardIt mid = dp::next(begin, half);
 			if (pred(*mid)) {
-				begin = dp::detail::next(mid);
+				begin = dp::next(mid);
 				length -= (half + 1);
 			}
 			else {
@@ -333,7 +324,7 @@ namespace dp {
 	}
 	template<typename ForwardIt1, typename ForwardIt2, typename BinaryPredicate>
 	bool is_permutation(ForwardIt1 begin, ForwardIt1 end, ForwardIt2 dest_begin, BinaryPredicate pred) {
-		return dp::is_permutation(begin, end, dest_begin, dp::detail::next(dest_begin, std::distance(begin, end)), pred);
+		return dp::is_permutation(begin, end, dest_begin, dp::next(dest_begin, std::distance(begin, end)), pred);
 	}
 
 	template<typename ForwardIt1, typename ForwardIt2>
@@ -356,7 +347,7 @@ namespace dp {
 	}
 	template<typename ForwardIt1, typename ForwardIt2>
 	bool is_permutation(ForwardIt1 begin, ForwardIt1 end, ForwardIt2 dest_begin) {
-		return dp::is_permutation(begin, end, dest_begin, dp::detail::next(dest_begin, std::distance(begin, end)));
+		return dp::is_permutation(begin, end, dest_begin, dp::next(dest_begin, std::distance(begin, end)));
 	}
 
 

@@ -54,6 +54,9 @@ namespace detail {
 			if (m_HasValue) new (m_Storage) T(*in);
 		}
 
+		//Don't try to be clever and remove these constructors from the overload set is U is not convertible to T. It creates problems.
+		//Because operator bool cannot be explicit, putting that gate up at the overload selection stage results in an undesirable conversion
+		//optional<T> -> bool -> optional<any_integral_type>
 		template<typename U>
 		explicit opt_exp_base(const opt_exp_base<U, ContSize>& in) : m_HasValue(in.has_value()) {
 			if (m_HasValue) new (m_Storage) T(*in);
