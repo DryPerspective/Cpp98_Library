@@ -15,9 +15,9 @@ A writeup of all the features can be found on [the project's wiki](https://githu
 * algorithm
 * array
 * expected 
+* iterator
 * numeric
 * optional 
-* range_functions
 * ratio
 * rc_base 
 * rc_ptr 
