@@ -213,7 +213,7 @@ namespace dp {
 	*  For cases where you don't get EBO and sizeof(smart_pointer<T> == sizeof(T*) must hold
 	*  WET but we can't inherit or compose
 	*/
-	template<typename T>
+	template<typename T, typename Deleter = dp::default_delete<T> >
 	class lite_ptr {
 		T* m_data;
 
@@ -230,7 +230,7 @@ namespace dp {
 		explicit lite_ptr(T* in = NULL) : m_data(in) {}
 
 		~lite_ptr() {
-			delete m_data;
+			Deleter()(m_data);
 		}
 
 
@@ -241,6 +241,10 @@ namespace dp {
 
 		const T* get() const { return m_data; }
 		T* get() { return m_data; }
+
+		Deleter get_deleter() const {
+			return Deleter;
+		}
 
 		void swap(lite_ptr& other) {
 			using std::swap;
@@ -273,8 +277,8 @@ namespace dp {
 		}
 
 	};
-	template<typename T>
-	class lite_ptr<T[]> {
+	template<typename T, typename Deleter>
+	class lite_ptr<T[], Deleter> {
 		T* m_data;
 
 		//We explicitly forbid copying.
@@ -290,7 +294,7 @@ namespace dp {
 		explicit lite_ptr(T* in = NULL) : m_data(in) {}
 
 		~lite_ptr() {
-			delete[] m_data;
+			Deleter()(m_data);
 		}
 
 
@@ -322,6 +326,10 @@ namespace dp {
 			return m_data[N];
 		}
 
+		Deleter get_deleter() const {
+			return Deleter;
+		}
+
 		//Replace the resource we currently own with a new one
 		//Or just delete the resource we have
 		void reset(pointer in = NULL) {
@@ -340,12 +348,12 @@ namespace dp {
 	/*
 	* UTILITY FUNCTIONS
 	*/
-	template<typename T>
-	void swap(dp::lite_ptr<T>& lhs, dp::lite_ptr<T>& rhs) {
+	template<typename T, typename Deleter>
+	void swap(dp::lite_ptr<T, Deleter>& lhs, dp::lite_ptr<T, Deleter>& rhs) {
 		lhs.swap(rhs);
 	}
-	template<typename CharT, typename Traits, typename T>
-	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const dp::lite_ptr<T>& ptr) {
+	template<typename CharT, typename Traits, typename T, typename Deleter>
+	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const dp::lite_ptr<T, Deleter>& ptr) {
 		os << ptr.get();
 		return os;
 	}
@@ -353,28 +361,28 @@ namespace dp {
 	/*
 	* COMPARISON OPERATORS
 	*/
-	template<typename T1, typename T2>
-	bool operator==(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+	template<typename T1, typename D1, typename T2, typename D2>
+	bool operator==(const dp::lite_ptr<T1, D1>& lhs, const dp::lite_ptr<T2, D2>& rhs) {
 		return lhs.get() == rhs.get();
 	}
-	template<typename T1, typename T2>
-	bool operator!=(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+	template<typename T1, typename D1, typename T2, typename D2>
+	bool operator!=(const dp::lite_ptr<T1, D1>& lhs, const dp::lite_ptr<T2, D2>& rhs) {
 		return !(lhs == rhs);
 	}
-	template<typename T1, typename T2>
-	bool operator<(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+	template<typename T1, typename D1, typename T2, typename D2>
+	bool operator<(const dp::lite_ptr<T1, D1>& lhs, const dp::lite_ptr<T2, D2>& rhs) {
 		return lhs.get() < rhs.get();
 	}
-	template<typename T1, typename T2>
-	bool operator<=(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+	template<typename T1, typename D1, typename T2, typename D2>
+	bool operator<=(const dp::lite_ptr<T1, D1>& lhs, const dp::lite_ptr<T2, D2>& rhs) {
 		return !(rhs < lhs);
 	}
-	template<typename T1, typename T2>
-	bool operator>(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+	template<typename T1, typename D1, typename T2, typename D2>
+	bool operator>(const dp::lite_ptr<T1, D1>& lhs, const dp::lite_ptr<T2, D2>& rhs) {
 		return rhs < lhs;
 	}
-	template<typename T1, typename T2>
-	bool operator>=(const dp::lite_ptr<T1>& lhs, const dp::lite_ptr<T2>& rhs) {
+	template<typename T1, typename D1, typename T2, typename D2>
+	bool operator>=(const dp::lite_ptr<T1, D1>& lhs, const dp::lite_ptr<T2, D2>& rhs) {
 		return !(lhs < rhs);
 	}
 
