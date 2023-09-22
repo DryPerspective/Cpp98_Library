@@ -10,6 +10,7 @@
 #include "cpp98/scoped_ptr.h"
 #include "bits/static_assert_no_macro.h"
 #include "cpp98/type_traits.h"
+#include "bits/version_defs.h"
 
 
 namespace dp {
@@ -227,7 +228,7 @@ namespace dp {
 			m_control = inPtr.m_control;
 			if (m_control) m_control->inc_shared();
 		}
-#ifndef DP_CPP17
+#ifndef DP_CPP17_OR_HIGHER
 		template<typename U>
 		shared_ptr(std::auto_ptr<U>& inPtr) : m_ptr(inPtr.get()), m_control(new dp::detail::shared_block_no_deleter<StoredT>(inPtr.release())) {
 			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
@@ -256,7 +257,7 @@ namespace dp {
 			this->swap(copy);
 			return *this;
 		}
-#ifndef DP_CPP17
+#ifndef DP_CPP17_OR_HIGHER
 		template<typename U>
 		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, shared_ptr&>::type operator=(std::auto_ptr<U>& inPtr) {
 			shared_ptr copy(inPtr);

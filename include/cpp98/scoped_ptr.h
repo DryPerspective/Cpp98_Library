@@ -1,12 +1,21 @@
 #ifndef DP_CPP98_SCOPED_PTR
 #define DP_CPP98_SCOPED_PTR
 
+#include "bits/version_defs.h"
+
 #include <cstddef>
 #include <algorithm>
 #include <ostream>
 
+#ifndef DP_CPP17_OR_HIGHER
+#include <memory>
+#endif
+
+
 #include "cpp98/type_traits.h"
 #include "bits/smart_ptr_bases.h"
+#include "bits/static_assert_no_macro.h"
+
 /*
 *   A very simple scope-local smart pointer class for C++03. It is in no way as sophisticated as
 *   the C++11 smart pointers like unique_ptr and shared_ptr, and should be replaced by std::unique_ptr when the opportunity arises.
@@ -50,8 +59,18 @@ namespace dp{
 
 			explicit scoped_ptr_base(pointer in, deleter_type del_inst) : detail::deleter_holder<T, Deleter>(del_inst), m_data(in) {}
 
-			scoped_ptr_base& operator=(pointer in) {
-				this->reset(in);
+			template<typename ValT, typename DelT>
+			explicit scoped_ptr_base(scoped_ptr_base<ValT, DelT>& inPtr) : detail::deleter_holder<T, Deleter>(inPtr.get_deleter()), m_data(in.release()) {}
+
+#ifndef DP_CPP17_OR_HIGHER
+			explicit scoped_ptr_base(std::auto_ptr<T>& in) : m_data(in.release()) {}
+#endif
+
+
+			template<typename ValT, typename DelT>
+			scoped_ptr_base& operator=(scoped_ptr_base<ValT, DelT>& inPtr) {
+				scoped_ptr_base copy(inPtr);
+				this->swap(copy);
 				return *this;
 			}
 
@@ -111,6 +130,13 @@ namespace dp{
 
 		explicit scoped_ptr(T* in, Deleter del_inst) : Base(in, del_inst) {}
 
+		template<typename ValT, typename DelT>
+		explicit scoped_ptr(scoped_ptr<ValT, DelT>& inPtr) : Base(inPtr) {}
+
+#ifndef DP_CPP17_OR_HIGHER
+		explicit scoped_ptr(std::auto_ptr<T>& in) : Base(in) {}
+#endif
+
 		using Base::operator=;
 
 		const T& operator*() const { return *Base::m_data; }
@@ -140,6 +166,13 @@ namespace dp{
 		explicit scoped_ptr(T* in = NULL) : Base(in) {}
 
 		explicit scoped_ptr(T* in, Deleter del_inst) : Base(in, del_inst) {}
+
+		template<typename ValT, typename DelT>
+		explicit scoped_ptr(scoped_ptr<ValT, DelT>& inPtr) : Base(inPtr) {}
+
+#ifndef DP_CPP17_OR_HIGHER
+		explicit scoped_ptr(std::auto_ptr<T>& in) : Base(in) {}
+#endif
 
 		using Base::operator=;
 
@@ -216,15 +249,15 @@ namespace dp{
 
 		explicit lite_ptr(T* in = NULL) : m_data(in) {}
 
+
+#ifndef DP_CPP17_OR_HIGHER
+		explicit lite_ptr(std::auto_ptr<T>& in) : m_data(in.release()) {}
+#endif
+
 		~lite_ptr() {
 			Deleter()(m_data);
 		}
 
-
-		lite_ptr& operator=(pointer in) {
-			this->reset(in);
-			return *this;
-		}
 
 		const T* get() const { return m_data; }
 		T* get() { return m_data; }
@@ -245,76 +278,31 @@ namespace dp{
 			return temp;
 		}
 
-		const T& operator*() const { return *m_data; }
-		T& operator*() { return *m_data; }
-		const T* operator->() const { return m_data; }
-		T* operator->() { return m_data; }
-
-		//Replace the resource we currently own with a new one
-		//Or just delete the resource we have
-		void reset(pointer in = NULL) {
-			if (m_data != in) {
-				this->delete_resource(m_data);
-				m_data = in;
-			}
+		const T& operator*() const { 
+			dp::static_assert_98<!dp::is_array<T>::value>(); 
+			return *m_data; 
 		}
-
-		operator bool() const {
+		T& operator*() {
+			dp::static_assert_98<!dp::is_array<T>::value>();
+			return *m_data;
+		}
+		const T* operator->() const {
+			dp::static_assert_98<!dp::is_array<T>::value>();
 			return m_data;
 		}
-
-	};
-	template<typename T, typename Deleter>
-	class lite_ptr<T[], Deleter> {
-		T* m_data;
-
-		//We explicitly forbid copying.
-		lite_ptr(const lite_ptr&);
-		lite_ptr& operator=(const lite_ptr&);
-
-		typedef const T* const_pointer;
-
-	public:
-		typedef T       element_type;
-		typedef T* pointer;
-
-		explicit lite_ptr(T* in = NULL) : m_data(in) {}
-
-		~lite_ptr() {
-			Deleter()(m_data);
-		}
-
-
-		lite_ptr& operator=(pointer in) {
-			this->reset(in);
-			return *this;
-		}
-
-		const T* get() const { return m_data; }
-		T* get() { return m_data; }
-
-		void swap(lite_ptr& other) {
-			using std::swap;
-			swap(m_data, other.m_data);
-		}
-
-		//Release ownership of the resource and return the raw pointer to it.
-		pointer release() {
-			T* temp = m_data;
-			m_data = NULL;
-			return temp;
+		T* operator->() {
+			dp::static_assert_98<!dp::is_array<T>::value>();
+			return *m_data;
 		}
 
 		//Rather than dereference and pointer access operators, we provide array access
 		const T*& operator[](std::size_t N) const {
+			dp::static_assert_98<dp::is_array<T>::value>();
 			return m_data[N];
 		}
 		T& operator[](std::size_t N) {
+			dp::static_assert_98<dp::is_array<T>::value>();
 			return m_data[N];
-		}
-
-		Deleter get_deleter() const {
-			return Deleter;
 		}
 
 		//Replace the resource we currently own with a new one
@@ -331,6 +319,7 @@ namespace dp{
 		}
 
 	};
+	
 
 	/*
 	* UTILITY FUNCTIONS
