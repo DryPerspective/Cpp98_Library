@@ -370,6 +370,10 @@ namespace dp {
 
 		weak_ptr() : m_control(NULL), m_ptr(NULL) {}
 
+		weak_ptr(const weak_ptr& inPtr) : m_control(inPtr.m_control), m_ptr(inPtr.m_ptr) {
+			m_control->inc_weak();
+		}
+
 		template<typename U>
 		weak_ptr(const weak_ptr<U>& inPtr) : m_control(inPtr.m_control), m_ptr(inPtr.m_ptr) {
 			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
@@ -384,6 +388,12 @@ namespace dp {
 
 		~weak_ptr() {
 			if (m_control) m_control->dec_weak();
+		}
+
+		weak_ptr& operator=(const weak_ptr& inPtr) {
+			weak_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
 		}
 
 		template<typename U>
