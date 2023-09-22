@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <typeinfo>
 #include <ostream>
-#include "cpp98/scoped_ptr.h"
+#include "bits/smart_ptr_bases.h"
 #include "bits/static_assert_no_macro.h"
 #include "cpp98/type_traits.h"
 #include "bits/version_defs.h"
@@ -49,7 +49,7 @@ namespace dp {
 					destroy_resource();
 					dec_weak();
 				}
-				
+
 			}
 			void dec_weak() {
 				if (--weak_count == 0) {
@@ -148,8 +148,19 @@ namespace dp {
 	template<typename StoredT>
 	class weak_ptr;
 
+	template<typename StoredT, typename Deleter>
+	class scoped_ptr;
+
+	template<typename T>
+	class shared_ptr;
+
 	struct bad_weak_ptr;
 
+	template<typename T>
+	class enable_shared_from_this;
+
+	template<typename U, typename Ptr, bool b>
+	struct enable_from_this_check;
 
 	//We don't need a common base on this one, as the standard does not specify that a operator[] must only be present on array type shared pointers.
 	//We will assert it statically to minimise UB.
@@ -178,6 +189,8 @@ namespace dp {
 		}
 
 
+
+
 	public:
 
 		typedef typename dp::remove_extent<StoredT>::type	element_type;
@@ -187,13 +200,15 @@ namespace dp {
 		shared_ptr() : m_ptr(NULL), m_control(NULL) {}
 
 		template<typename U>
-		explicit shared_ptr(U* in) : m_ptr(in), m_control(new dp::detail::shared_block_no_deleter<StoredT>(in)) {
+		explicit shared_ptr(U* inPtr) : m_ptr(inPtr), m_control(new dp::detail::shared_block_no_deleter<StoredT>(inPtr)) {
 			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			enable_from_this_check<U, StoredT, dp::is_base_of<dp::enable_shared_from_this<U>, U>::value>()(inPtr, *this);
 		}
 
 		template<typename U, typename Deleter>
 		shared_ptr(U* inPtr, Deleter inDel) : m_ptr(inPtr), m_control(new dp::detail::shared_block_with_deleter<U, Deleter>(inPtr, inDel)) {
 			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			enable_from_this_check<U, StoredT, dp::is_base_of<dp::enable_shared_from_this<U>, U>::value>()(inPtr, *this);
 		}
 
 		template<typename U, typename Deleter, typename Alloc>
@@ -203,6 +218,7 @@ namespace dp {
 			Rebind rb;
 			m_control = rb.allocate(sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
 			new (m_control) dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc);
+			enable_from_this_check<U, StoredT, dp::is_base_of<dp::enable_shared_from_this<U>, U>::value>()(inPtr, *this);
 		}
 
 		//Aliasing ctor
@@ -241,7 +257,7 @@ namespace dp {
 
 
 		~shared_ptr() {
-			if(m_control) m_control->dec_shared();
+			if (m_control) m_control->dec_shared();
 		}
 
 
@@ -266,8 +282,8 @@ namespace dp {
 		}
 #endif
 
-		template<typename U>
-		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, shared_ptr&>::type operator=(dp::scoped_ptr<U>& inPtr) {
+		template<typename U, typename DelT>
+		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, shared_ptr&>::type operator=(dp::scoped_ptr<U, DelT>& inPtr) {
 			shared_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
@@ -349,6 +365,11 @@ namespace dp {
 		bool owner_before(const shared_ptr<U>& inPtr) {
 			return m_control < inPtr.m_control;
 		}
+
+		template<typename U>
+		bool owner_before(const dp::weak_ptr<U>& inPtr) {
+			return m_control < inPtr.m_control;
+		}
 	};
 
 
@@ -424,7 +445,7 @@ namespace dp {
 		}
 
 		std::size_t use_count() const {
-			return m_control->shared_count;
+			return m_control ? m_control->weak_count : 0;
 		}
 
 		bool expired() const {
@@ -453,7 +474,7 @@ namespace dp {
 
 	struct bad_weak_ptr : std::exception {
 		virtual const char* what() throw() {
-			return "Access weak pointer to already destroyed object";
+			return "Bad weak ptr";
 		}
 
 	};
@@ -465,7 +486,7 @@ namespace dp {
 	*/
 	template<typename T>
 	typename dp::enable_if<!dp::is_array<T>::value, dp::shared_ptr<T> >::type make_shared() {
-		return dp::shared_ptr<T>();
+		return dp::shared_ptr<T>(new T);
 	}
 	template<typename T, typename U>
 	typename dp::enable_if<!dp::is_array<T>::value, dp::shared_ptr<T> >::type make_shared(const U& in) {
@@ -502,7 +523,7 @@ namespace dp {
 	template<typename T>
 	typename dp::enable_if<dp::is_unbounded_array<T>::value, dp::shared_ptr<T> >::type make_shared(std::size_t N, const typename dp::remove_extent<T>::type& u) {
 		typedef typename dp::remove_extent<T>::type elemT;
-		dp::scoped_ptr<T> temp(new elemT[N]);
+		dp::scoped_ptr<T, dp::default_delete<T> > temp(new elemT[N]);
 		for (std::size_t i = 0; i < N; ++i) temp[i] = u;
 		return dp::shared_ptr<T>(temp);
 	}
@@ -510,7 +531,7 @@ namespace dp {
 	template<typename T>
 	typename dp::enable_if<dp::is_bounded_array<T>::value, dp::shared_ptr<T> >::type make_shared(const typename dp::remove_extent<T>::type& u) {
 		typedef typename dp::remove_extent<T>::type elemT;
-		dp::scoped_ptr<T> temp(new elemT[dp::rank<T>::value]);
+		dp::scoped_ptr<T, dp::default_delete<T> > temp(new elemT[dp::rank<T>::value]);
 		for (std::size_t i = 0; i < dp::rank<T>::value; ++i) temp[i] = u;
 		return dp::shared_ptr<T>(temp);
 	}
@@ -554,7 +575,7 @@ namespace dp {
 	template<typename T, typename Alloc>
 	typename dp::enable_if<dp::is_unbounded_array<T>::value, dp::shared_ptr<T> >::type allocate_shared(const Alloc& alloc, std::size_t N, const typename dp::remove_extent<T>::type& u) {
 		typedef typename dp::remove_extent<T>::type elemT;
-		dp::scoped_ptr<T> temp(new elemT[N]);
+		dp::scoped_ptr<T, dp::default_delete<T> > temp(new elemT[N]);
 		for (std::size_t i = 0; i < N; ++i) temp[i] = u;
 		return dp::shared_ptr<T>(temp.release(), dp::default_delete<T>(), alloc);
 	}
@@ -562,7 +583,7 @@ namespace dp {
 	template<typename T, typename Alloc>
 	typename dp::enable_if<dp::is_bounded_array<T>::value, dp::shared_ptr<T> >::type allocate_shared(const Alloc& alloc, const typename dp::remove_extent<T>::type& u) {
 		typedef typename dp::remove_extent<T>::type elemT;
-		dp::scoped_ptr<T> temp(new elemT[dp::rank<T>::value]);
+		dp::scoped_ptr<T, dp::default_delete<T> > temp(new elemT[dp::rank<T>::value]);
 		for (std::size_t i = 0; i < dp::rank<T>::value; ++i) temp[i] = u;
 		return dp::shared_ptr<T>(temp.release(), dp::default_delete<T>(), alloc);
 	}
@@ -632,6 +653,78 @@ namespace dp {
 	void swap(dp::weak_ptr<T>& lhs, dp::weak_ptr<T>& rhs) {
 		lhs.swap(rhs);
 	}
+
+	/*
+	*  SUPPORT OBJECTS
+	*/
+	template<typename T = void>
+	struct owner_less;
+
+	template<>
+	struct owner_less<void> {
+		template<typename T>
+		bool operator()(const dp::weak_ptr<T>& lhs, const dp::shared_ptr<T>& rhs) const {
+			return lhs.owner_before(rhs);
+		}
+		template<typename T>
+		bool operator()(const dp::shared_ptr<T>& lhs, const dp::weak_ptr<T>& rhs) const {
+			return lhs.owner_before(rhs);
+		}
+	};
+
+	template<typename T>
+	struct owner_less<dp::shared_ptr<T> > : dp::owner_less<void> {
+		bool operator()(const dp::shared_ptr<T>& lhs, const dp::shared_ptr<T>& rhs) {
+			return lhs.owner_before(rhs);
+		}
+	};
+	template<typename T>
+	struct owner_less<dp::weak_ptr<T> > : dp::owner_less<void> {
+		bool operator()(const dp::weak_ptr<T>& lhs, const dp::weak_ptr<T>& rhs) {
+			return lhs.owner_before(rhs);
+		}
+	};
+
+	template<typename U, typename Ptr, bool b>
+	struct enable_from_this_check {
+		void operator()(U*,const dp::shared_ptr<Ptr>&) {}
+	};
+	template<typename U, typename Ptr>
+	struct enable_from_this_check<U, Ptr, true> {
+		void operator()(U* inPtr, const dp::shared_ptr<Ptr>& inBase) {
+			if (inPtr && inPtr->weak_this.expired()) {
+				inPtr->weak_this = dp::shared_ptr<typename dp::remove_cv<U>::type>(inBase, const_cast<typename dp::remove_cv<U>::type*>(inPtr));
+			}
+
+		}
+	};
+
+	template<typename T>
+	class enable_shared_from_this {
+	protected:
+
+
+	public:
+		dp::weak_ptr<T> weak_this;
+
+		enable_shared_from_this() {}
+		enable_shared_from_this(const enable_shared_from_this& other) : weak_this(other.weak_this) {}
+
+		dp::shared_ptr<T> shared_from_this() {
+			return dp::shared_ptr<T>(weak_this);
+		}
+		dp::shared_ptr<const T> shared_from_this() const {
+			return dp::shared_ptr<T>(weak_this);
+		}
+		dp::weak_ptr<T> weak_from_this() {
+			return weak_this;
+		}
+		dp::weak_ptr<const T> weak_from_this() const {
+			return weak_this;
+		}
+	};
+
+
 
 
 
