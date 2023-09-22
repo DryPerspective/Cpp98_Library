@@ -3,7 +3,7 @@
 
 #include <cctype>
 
-#include "cpp98/static_assert.h"    //To assert no zero denominators
+#include "bits/static_assert_no_macro.h"    //To assert no zero denominators
 #include "cpp98/type_traits.h"
 
 namespace dp{
