@@ -22,20 +22,7 @@
 *   This is simply because we dont have variadic templates at our disposal and handwriting every permutation is silly.
 */
 
-namespace dp {
-
-	template<typename T>
-	struct default_delete {
-		void operator()(T* in) {
-			delete in;
-		}
-	};
-	template<typename T>
-	struct default_delete<T[]> {
-		void operator()(T* in) {
-			delete[] in;
-		}
-	};
+namespace dp{
 
 	namespace detail {
 		//Since the majority of both versions of scoped_ptr are identical,

@@ -23,6 +23,7 @@ A writeup of all the features can be found on [the project's wiki](https://githu
 * rc_base 
 * rc_ptr 
 * scoped_ptr
+* shared_ptr
 * static_assert 
 * string_view
 * typeindex

@@ -4,6 +4,25 @@
 #include "cpp98/type_traits.h"
 
 namespace dp{
+	template<typename T>
+	struct default_delete {
+		void operator()(T* in) {
+			delete in;
+		}
+	};
+	template<typename T>
+	struct default_delete<T[]> {
+		void operator()(T* in) {
+			delete[] in;
+		}
+	};
+	template<typename T, std::size_t N>
+	struct default_delete<T[N]> {
+		void operator()(T* in) {
+			delete[] in;
+		}
+	};
+
 namespace detail {
 	template<typename ValT, typename DelT, bool = dp::is_pointer<DelT>::value>
 	struct deleter_holder {
