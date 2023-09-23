@@ -151,6 +151,9 @@ namespace dp {
 	template<typename StoredT, typename Deleter>
 	class scoped_ptr;
 
+	template<typename StoredT, typename Deleter>
+	class lite_ptr;
+
 	template<typename T>
 	class shared_ptr;
 
@@ -255,6 +258,11 @@ namespace dp {
 			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
 		}
 
+		template<typename U, typename Deleter>
+		shared_ptr(dp::lite_ptr<U, Deleter>& inPtr) : m_ptr(inPtr.get()), m_control(new dp::detail::shared_block_with_deleter<StoredT, Deleter>(inPtr.release(), inPtr.get_deleter())) {
+			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+		}
+
 
 		~shared_ptr() {
 			if (m_control) m_control->dec_shared();
@@ -284,6 +292,13 @@ namespace dp {
 
 		template<typename U, typename DelT>
 		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, shared_ptr&>::type operator=(dp::scoped_ptr<U, DelT>& inPtr) {
+			shared_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
+		}
+
+		template<typename U, typename DelT>
+		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, shared_ptr&>::type operator=(dp::lite_ptr<U, DelT>& inPtr) {
 			shared_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
@@ -516,24 +531,24 @@ namespace dp {
 	template<typename T>
 	typename dp::enable_if<dp::is_bounded_array<T>::value, dp::shared_ptr<T> >::type make_shared() {
 		typedef typename dp::remove_extent<T>::type elemT;
-		return dp::shared_ptr<T>(new elemT[dp::rank<T>::value]);
+		return dp::shared_ptr<T>(new elemT[dp::extent<T>::value]);
 	}
 
 	//Not strictly initializing in order but I'm not a compiler maker.
 	template<typename T>
 	typename dp::enable_if<dp::is_unbounded_array<T>::value, dp::shared_ptr<T> >::type make_shared(std::size_t N, const typename dp::remove_extent<T>::type& u) {
 		typedef typename dp::remove_extent<T>::type elemT;
-		dp::scoped_ptr<T, dp::default_delete<T> > temp(new elemT[N]);
+		dp::shared_ptr<T> temp(new elemT[N]);
 		for (std::size_t i = 0; i < N; ++i) temp[i] = u;
-		return dp::shared_ptr<T>(temp);
+		return temp;
 	}
 
 	template<typename T>
 	typename dp::enable_if<dp::is_bounded_array<T>::value, dp::shared_ptr<T> >::type make_shared(const typename dp::remove_extent<T>::type& u) {
 		typedef typename dp::remove_extent<T>::type elemT;
-		dp::scoped_ptr<T, dp::default_delete<T> > temp(new elemT[dp::rank<T>::value]);
-		for (std::size_t i = 0; i < dp::rank<T>::value; ++i) temp[i] = u;
-		return dp::shared_ptr<T>(temp);
+		dp::shared_ptr<T> temp(new elemT[dp::extent<T>::value]);
+		for (std::size_t i = 0; i < dp::extent<T>::value; ++i) temp[i] = u;
+		return temp;
 	}
 
 
@@ -569,23 +584,23 @@ namespace dp {
 	template<typename T, typename Alloc>
 	typename dp::enable_if<dp::is_bounded_array<T>::value, dp::shared_ptr<T> >::type allocate_shared(const Alloc& alloc) {
 		typedef typename dp::remove_extent<T>::type elemT;
-		return dp::shared_ptr<T>(new elemT[dp::rank<T>::value], dp::default_delete<T>(), alloc);
+		return dp::shared_ptr<T>(new elemT[dp::extent<T>::value], dp::default_delete<T>(), alloc);
 	}
 
 	template<typename T, typename Alloc>
 	typename dp::enable_if<dp::is_unbounded_array<T>::value, dp::shared_ptr<T> >::type allocate_shared(const Alloc& alloc, std::size_t N, const typename dp::remove_extent<T>::type& u) {
 		typedef typename dp::remove_extent<T>::type elemT;
-		dp::scoped_ptr<T, dp::default_delete<T> > temp(new elemT[N]);
+		dp::shared_ptr<T> temp(new elemT[N], dp::default_delete<T>(), alloc);
 		for (std::size_t i = 0; i < N; ++i) temp[i] = u;
-		return dp::shared_ptr<T>(temp.release(), dp::default_delete<T>(), alloc);
+		return temp;
 	}
 
 	template<typename T, typename Alloc>
 	typename dp::enable_if<dp::is_bounded_array<T>::value, dp::shared_ptr<T> >::type allocate_shared(const Alloc& alloc, const typename dp::remove_extent<T>::type& u) {
 		typedef typename dp::remove_extent<T>::type elemT;
-		dp::scoped_ptr<T, dp::default_delete<T> > temp(new elemT[dp::rank<T>::value]);
-		for (std::size_t i = 0; i < dp::rank<T>::value; ++i) temp[i] = u;
-		return dp::shared_ptr<T>(temp.release(), dp::default_delete<T>(), alloc);
+		dp::shared_ptr<T> temp(new elemT[dp::extent<T>::value], dp::default_delete<T>(), alloc);
+		for (std::size_t i = 0; i < dp::extent<T>::value; ++i) temp[i] = u;
+		return temp;
 	}
 
 	template<typename T, typename U>
