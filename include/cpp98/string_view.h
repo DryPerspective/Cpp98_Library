@@ -10,6 +10,7 @@
 
 #include "cpp98/iterator.h"
 #include "bits/fat_pointer.h"
+#include "bits/misc_memory_functions.h"
 
 
 namespace dp{
@@ -200,7 +201,7 @@ namespace dp{
             return npos;
         }
         size_type find(CharT ch, size_type pos = 0) const{
-            return find(basic_string_view(&ch, 1), pos);
+            return find(basic_string_view(dp::addressof(ch), 1), pos);
         }
         size_type find(const CharT* s, size_type pos, size_type count) const{
             return find(basic_string_view(s, count), pos);
@@ -224,7 +225,7 @@ namespace dp{
             return npos;
         }
         size_type rfind(CharT ch, size_type pos = npos) const{
-            return rfind(basic_string_view(&ch, 1), pos);
+            return rfind(basic_string_view(dp::addressof(ch), 1), pos);
         }
         size_type rfind(const CharT* s, size_type pos, size_type count) const{
             return rfind(basic_string_view(s, count), pos);
@@ -242,7 +243,7 @@ namespace dp{
             return npos;
         }
         size_type find_first_of(CharT ch, size_type pos = 0) const{
-            return find_first_of(basic_string_view(&ch, 1), pos);
+            return find_first_of(basic_string_view(dp::addressof(ch), 1), pos);
         }
         size_type find_first_of(const CharT* s, size_type pos, size_type count) const{
             return find_first_of(basic_string_view(s, count), pos);
@@ -261,7 +262,7 @@ namespace dp{
             return npos;
         }
         size_type find_last_of(CharT ch, size_type pos = npos) const{
-            return find_last_of(basic_string_view(&ch, 1), pos);
+            return find_last_of(basic_string_view(dp::addressof(ch), 1), pos);
         }
         size_type find_last_of(const CharT* s, size_type pos, size_type count) const{
             return find_last_of(basic_string_view(s, count), pos);
@@ -279,7 +280,7 @@ namespace dp{
             return npos;           
         }
         size_type find_first_not_of(CharT ch, size_type pos = 0) const{
-            return find_first_not_of(basic_string_view(&ch, 1), pos);
+            return find_first_not_of(basic_string_view(dp::addressof(ch), 1), pos);
         }
         size_type find_first_not_of(const CharT* s, size_type pos, size_type count) const{
             return find_first_not_of(basic_string_view(s, count), pos);
@@ -298,7 +299,7 @@ namespace dp{
             return npos;            
         }
         size_type find_last_not_of(CharT ch, size_type pos = npos) const{
-            return find_last_not_of(basic_string_view(&ch, 1), pos);
+            return find_last_not_of(basic_string_view(dp::addressof(ch), 1), pos);
         }
         size_type find_last_not_of(const CharT* s, size_type pos, size_type count) const{
             return find_last_not_of(basic_string_view(s, count), pos);

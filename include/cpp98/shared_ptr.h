@@ -220,7 +220,7 @@ namespace dp {
 			typedef typename Alloc::rebind<dp::detail::shared_block_with_allocator<U, Deleter, Alloc> >::other Rebind;
 			Rebind rb;
 			m_control = rb.allocate(sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
-			new (m_control) dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc);
+			::new (m_control) dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc);
 			enable_from_this_check<U, StoredT, dp::is_base_of<dp::enable_shared_from_this<U>, U>::value>()(inPtr, *this);
 		}
 
