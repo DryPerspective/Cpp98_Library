@@ -42,10 +42,11 @@ namespace dp {
 	template<typename StoredT>
 	class shared_ptr {
 
+		typedef typename dp::remove_extent<StoredT>::type	stored_type;
 		
 		//NB: Correct constructors before changing order.
 		//Other smart pointer ctors rely on this order
-		StoredT* m_ptr;
+		stored_type* m_ptr;
 		detail::shared_control_block_base* m_control;
 
 		template<typename U>
@@ -102,7 +103,7 @@ namespace dp {
 		}
 
 		//Copy ctor
-		shared_ptr(const shared_ptr& inPtr) : m_ptr(inPtr.get()), m_control(inPtr.m_control) {
+		shared_ptr(const shared_ptr& inPtr) : m_ptr(inPtr.m_ptr), m_control(inPtr.m_control) {
 			if (m_control) m_control->inc_shared();
 		}
 		template<typename U>

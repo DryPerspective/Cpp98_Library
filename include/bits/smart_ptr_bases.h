@@ -199,7 +199,8 @@ namespace dp {
 		template<typename Y, typename T>
 		struct compatible_ptr_type {
 			static const bool value = dp::is_convertible<Y*, T*>::value ||
-					(dp::is_array<Y>::value && dp::is_same<typename dp::remove_extent<Y>::type, typename dp::remove_cv<T>::type>::value);
+					((dp::is_array<T>::value || dp::is_array<Y>::value) && 
+					dp::is_same<typename dp::remove_extent<Y>::type, typename dp::remove_cv<typename dp::remove_extent<T>::type>::type>::value);
 		};
 		
 

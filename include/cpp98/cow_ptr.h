@@ -23,8 +23,10 @@ namespace dp {
 	class cow_ptr {
 
 		typedef typename dp::detail::shared_block_no_deleter<StoredT> BlockT;
+		typedef typename dp::remove_extent<StoredT>::type stored_type;
 
-		StoredT* m_ptr;
+
+		stored_type* m_ptr;
 		BlockT* m_control;
 
 		void make_copy() {
