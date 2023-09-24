@@ -94,6 +94,10 @@ namespace dp {
 			virtual void destroy_resource() = 0;
 			virtual void destroy_block() = 0;
 
+			//Clone only used for cow_ptr
+			virtual shared_control_block_base* clone() = 0;
+			virtual void* get() = 0;
+
 			virtual void* get_deleter(const std::type_info&) {
 				return NULL;
 			}
@@ -135,7 +139,28 @@ namespace dp {
 			}
 
 		public:
+
 			explicit shared_block_no_deleter(InputT* in) : shared_control_block_base(), m_ptr(in) {}
+
+			shared_block_no_deleter* clone() {
+				//I don't really like this design either, but exception safety gotta exception safety.
+				InputT* newPtr = NULL;
+				shared_block_no_deleter* newBlock = NULL;
+				try {
+					newPtr = new InputT(*m_ptr);
+					newBlock = new shared_block_no_deleter(newPtr);
+				}
+				catch (...) {
+					dp::default_delete<StoredT>()(newPtr);
+					delete newBlock;
+					throw;
+				}
+				return newBlock;
+			}
+
+			void* get() {
+				return m_ptr;
+			}
 
 		};
 
@@ -161,6 +186,27 @@ namespace dp {
 			void* get_deleter(const std::type_info& inT) {
 				if (inT == typeid(DelT)) return static_cast<void*>(&m_deleter);
 				return NULL;
+			}
+
+			shared_block_with_deleter* clone() {
+				InputT* newPtr = NULL;
+				shared_block_with_deleter* newBlock = NULL;
+				try {
+					newPtr = new InputT(*m_ptr);
+					DelT newDeleter(m_deleter);
+					newBlock = new shared_block_with_deleter(newPtr, newDeleter);
+				}
+				catch (...) {
+					DelT newDeleter(m_deleter);
+					newDeleter(newPtr);
+					delete newBlock;
+					throw;
+				}
+				return newBlock;
+			}
+
+			void* get() {
+				return m_ptr;
 			}
 		};
 
@@ -189,6 +235,35 @@ namespace dp {
 			void* get_deleter(const std::type_info& inT) {
 				if (inT == typeid(DelT)) return static_cast<void*>(&m_deleter);
 				return NULL;
+			}
+
+			shared_block_with_allocator* clone() {
+				InputT* newPtr = NULL;
+				try {
+					newPtr = new InputT(*m_ptr);
+				}
+				catch (...) {
+					DelT newDeleter(m_deleter);
+					newDeleter(newPtr);
+					throw;
+				}
+				//We separate them because custom deallocation is a little more complex.
+				typedef typename AllocT::rebind<shared_block_with_allocator<StoredT, DelT, AllocT> >::other alloc_type;
+				shared_block_with_allocator* newBlock = NULL;
+				try {
+					alloc_type all;
+					newBlock = all.allocate(sizeof(shared_block_with_allocator<StoredT, DelT, AllocT>));
+					::new (newBlock) shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), Alloc(m_alloc));
+				}
+				catch (...) {
+					alloc_type all;
+					all.deallocate(newBlock, sizeof(shared_block_with_allocator));
+				}
+				return newBlock;
+			}
+
+			void* get() {
+				return m_ptr;
 			}
 		};
 

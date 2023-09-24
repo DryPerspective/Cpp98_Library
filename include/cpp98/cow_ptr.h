@@ -22,7 +22,7 @@ namespace dp {
 	template<typename StoredT>
 	class cow_ptr {
 
-		typedef typename dp::detail::shared_block_no_deleter<StoredT> BlockT;
+		typedef typename dp::detail::shared_control_block_base BlockT;
 		typedef typename dp::remove_extent<StoredT>::type stored_type;
 
 
@@ -32,21 +32,10 @@ namespace dp {
 		void make_copy() {
 			//If we're not the only pointer using the resource
 			if (m_control && !this->unique()) {
-				StoredT* newRes = NULL;
-				BlockT* newBlock = NULL;
-				try {
-					newRes = new StoredT(*m_ptr);
-					newBlock = new BlockT(newRes);
-				}
-				catch (...) {
-					//Note the destructor of the control block does not delete the resource so no double free.
-					delete newRes;
-					delete newBlock;
-					throw;
-				}
+				BlockT* newBlock = m_control->clone();
 				m_control->dec_shared();
 				m_control = newBlock;
-				m_ptr = newRes;
+				m_ptr = static_cast<stored_type*>(m_control->get());
 			}
 		}
 
@@ -57,8 +46,22 @@ namespace dp {
 		explicit cow_ptr() : m_ptr(NULL), m_control(NULL) {}
 
 		template<typename U>
-		explicit cow_ptr(U* in) : m_ptr(in), m_control(new BlockT(in)) {
+		explicit cow_ptr(U* in) : m_ptr(in), m_control(new dp::detail::shared_block_no_deleter<StoredT>(in)) {
 			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
+
+		template<typename U, typename DelT>
+		cow_ptr(U* in, DelT inDel) : m_ptr(in), m_control(new dp::detail::shared_block_with_deleter<StoredT, DelT>(in, inDel)) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
+
+		template<typename U, typename DelT, typename Alloc>
+		cow_ptr(U* in, DelT inDel, Alloc alloc) : m_ptr(in), m_control(new dp::detail::shared_block_with_allocator<StoredT, DelT, Alloc>(in, inDel, alloc)) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
+
+		cow_ptr(const cow_ptr& inPtr) : m_ptr(inPtr.m_ptr), m_control(inPtr.m_control) {
+			if (m_control) m_control->inc_shared();
 		}
 
 		template<typename U>
@@ -135,7 +138,7 @@ namespace dp {
 		}
 
 		bool unique() const {
-			return use_count() == 0;
+			return use_count() == 1;
 		}
 
 		operator bool() const {
