@@ -16,14 +16,13 @@ A writeup of all the features can be found on [the project's wiki](https://githu
 * array
 * bit
 * byte
+* cow_ptr
 * expected 
 * iterator
 * memory
 * numeric
 * optional 
 * ratio
-* rc_base 
-* rc_ptr 
 * scoped_ptr
 * shared_ptr
 * static_assert 

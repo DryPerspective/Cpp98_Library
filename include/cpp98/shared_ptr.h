@@ -14,135 +14,7 @@
 
 
 namespace dp {
-	namespace detail {
-
-
-		//Shared base for all control block types.
-		class shared_control_block_base {
-			shared_control_block_base(const shared_control_block_base&);
-			shared_control_block_base& operator=(const shared_control_block_base&);
-
-		protected:
-			shared_control_block_base() : shared_count(1), weak_count(1) {}
-
-			virtual ~shared_control_block_base() {}
-
-		public:
-			std::size_t shared_count;
-			std::size_t weak_count;
-
-			virtual void destroy_resource() = 0;
-			virtual void destroy_block() = 0;
-
-			virtual void* get_deleter(const std::type_info&) {
-				return NULL;
-			}
-
-			void inc_shared() {
-				++shared_count;
-			}
-			void inc_weak() {
-				++weak_count;
-			}
-			void dec_shared() {
-				if (--shared_count == 0) {
-					destroy_resource();
-					dec_weak();
-				}
-
-			}
-			void dec_weak() {
-				if (--weak_count == 0) {
-					destroy_block();
-				}
-			}
-		};
-
-		//Control block for no deleter
-		template<typename StoredT>
-		class shared_block_no_deleter : public shared_control_block_base {
-
-			typedef typename dp::remove_extent<StoredT>::type InputT;
-
-			InputT* m_ptr;
-
-			void destroy_resource() {
-				//Spin up a default delete to make sure arrays get deleted with delete[]
-				dp::default_delete<StoredT>()(m_ptr);
-			}
-			void destroy_block() {
-				delete this;
-			}
-
-
-
-
-		public:
-			explicit shared_block_no_deleter(InputT* in) : shared_control_block_base(), m_ptr(in) {}
-
-		};
-
-		//Control block with deleter
-		template<typename StoredT, typename DelT>
-		class shared_block_with_deleter : public shared_control_block_base {
-
-			typedef typename dp::remove_extent<StoredT>::type InputT;
-
-			InputT* m_ptr;
-			DelT m_deleter;
-
-			void destroy_resource() {
-				m_deleter(m_ptr);
-			}
-			void destroy_block() {
-				delete this;
-			}
-
-		public:
-			explicit shared_block_with_deleter(InputT* inPtr, DelT inDel) : shared_control_block_base(), m_ptr(inPtr), m_deleter(inDel) {}
-
-			void* get_deleter(const std::type_info& inT) {
-				if (inT == typeid(DelT)) return static_cast<void*>(&m_deleter);
-				return NULL;
-			}
-		};
-
-		//Control block with deleter and allocator
-		template<typename StoredT, typename DelT, typename AllocT>
-		class shared_block_with_allocator : public shared_control_block_base {
-
-			typedef typename dp::remove_extent<StoredT>::type InputT;
-
-			InputT* m_ptr;
-			DelT m_deleter;
-			AllocT m_alloc;
-
-			void destroy_resource() {
-				m_deleter(m_ptr);
-			}
-			void destroy_block() {
-				typename AllocT::rebind<shared_block_with_allocator>::other dealloc;
-				this->~shared_block_with_allocator();
-				dealloc.deallocate(this, sizeof(shared_block_with_allocator));
-			}
-
-		public:
-			explicit shared_block_with_allocator(InputT* inPtr, DelT inDel, const AllocT& inAlloc) : shared_control_block_base(), m_ptr(inPtr), m_deleter(inDel), m_alloc(inAlloc) {}
-
-			void* get_deleter(const std::type_info& inT) {
-				if (inT == typeid(DelT)) return static_cast<void*>(&m_deleter);
-				return NULL;
-			}
-
-		};
-
-		//Trait for valid types on shared_ptr constructors
-		template<typename Y, typename T>
-		struct valid_shared_cont_type {
-			static const bool value = dp::is_convertible<Y*, T*>::value ||
-				(dp::is_array<T>::value && dp::is_convertible<typename dp::remove_extent<Y>::type, typename dp::remove_extent<T>::type>::value);
-		};
-	}
+	
 
 	//Forward decs
 	template<typename StoredT>
@@ -170,11 +42,10 @@ namespace dp {
 	template<typename StoredT>
 	class shared_ptr {
 
-		typedef typename dp::remove_extent<StoredT>::type stored_type;
-
+		
 		//NB: Correct constructors before changing order.
 		//Other smart pointer ctors rely on this order
-		stored_type* m_ptr;
+		StoredT* m_ptr;
 		detail::shared_control_block_base* m_control;
 
 		template<typename U>
@@ -204,19 +75,19 @@ namespace dp {
 
 		template<typename U>
 		explicit shared_ptr(U* inPtr) : m_ptr(inPtr), m_control(new dp::detail::shared_block_no_deleter<StoredT>(inPtr)) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			enable_from_this_check<U, StoredT, dp::is_base_of<dp::enable_shared_from_this<U>, U>::value>()(inPtr, *this);
 		}
 
 		template<typename U, typename Deleter>
 		shared_ptr(U* inPtr, Deleter inDel) : m_ptr(inPtr), m_control(new dp::detail::shared_block_with_deleter<U, Deleter>(inPtr, inDel)) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			enable_from_this_check<U, StoredT, dp::is_base_of<dp::enable_shared_from_this<U>, U>::value>()(inPtr, *this);
 		}
 
 		template<typename U, typename Deleter, typename Alloc>
 		shared_ptr(U* inPtr, Deleter inDel, Alloc inAlloc) : m_ptr(inPtr) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			typedef typename Alloc::rebind<dp::detail::shared_block_with_allocator<U, Deleter, Alloc> >::other Rebind;
 			Rebind rb;
 			m_control = rb.allocate(sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
@@ -236,12 +107,12 @@ namespace dp {
 		}
 		template<typename U>
 		shared_ptr(const shared_ptr<U>& inPtr) : m_ptr(inPtr.get()), m_control(inPtr.m_control) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			if (m_control) m_control->inc_shared();
 		}
 		template<typename U>
 		shared_ptr(const dp::weak_ptr<U>& inPtr) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			if (inPtr.expired()) throw dp::bad_weak_ptr();
 			m_ptr = inPtr.m_ptr;
 			m_control = inPtr.m_control;
@@ -250,17 +121,17 @@ namespace dp {
 #ifndef DP_CPP17_OR_HIGHER
 		template<typename U>
 		shared_ptr(std::auto_ptr<U>& inPtr) : m_ptr(inPtr.get()), m_control(new dp::detail::shared_block_no_deleter<StoredT>(inPtr.release())) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 		}
 #endif
 		template<typename U, typename Deleter>
 		shared_ptr(dp::scoped_ptr<U, Deleter>& inPtr) : m_ptr(inPtr.get()), m_control(new dp::detail::shared_block_with_deleter<StoredT, Deleter>(inPtr.release(), inPtr.get_deleter())) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 		}
 
 		template<typename U, typename Deleter>
 		shared_ptr(dp::lite_ptr<U, Deleter>& inPtr) : m_ptr(inPtr.get()), m_control(new dp::detail::shared_block_with_deleter<StoredT, Deleter>(inPtr.release(), inPtr.get_deleter())) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 		}
 
 
@@ -276,14 +147,14 @@ namespace dp {
 		}
 
 		template<typename U>
-		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, shared_ptr&>::type operator=(const shared_ptr<U>& inPtr) {
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, shared_ptr&>::type operator=(const shared_ptr<U>& inPtr) {
 			shared_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
 		}
 #ifndef DP_CPP17_OR_HIGHER
 		template<typename U>
-		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, shared_ptr&>::type operator=(std::auto_ptr<U>& inPtr) {
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, shared_ptr&>::type operator=(std::auto_ptr<U>& inPtr) {
 			shared_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
@@ -291,14 +162,14 @@ namespace dp {
 #endif
 
 		template<typename U, typename DelT>
-		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, shared_ptr&>::type operator=(dp::scoped_ptr<U, DelT>& inPtr) {
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, shared_ptr&>::type operator=(dp::scoped_ptr<U, DelT>& inPtr) {
 			shared_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
 		}
 
 		template<typename U, typename DelT>
-		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, shared_ptr&>::type operator=(dp::lite_ptr<U, DelT>& inPtr) {
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, shared_ptr&>::type operator=(dp::lite_ptr<U, DelT>& inPtr) {
 			shared_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
@@ -312,7 +183,7 @@ namespace dp {
 
 		template<typename U>
 		void reset(U* inPtr) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			//Do the potentially throwing thing first
 			dp::detail::shared_control_block_base* newBlock = new dp::detail::shared_block_no_deleter<StoredT>(inPtr);
 
@@ -323,7 +194,7 @@ namespace dp {
 		}
 		template<typename U, typename Deleter>
 		void reset(U* inPtr, Deleter inDel) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			dp::detail::shared_control_block_base* newBlock = new dp::detail::shared_block_with_deleter<StoredT, Deleter>(inPtr, inDel);
 
 			m_control->dec_shared();
@@ -332,7 +203,7 @@ namespace dp {
 		}
 		template<typename U, typename Deleter, typename Alloc>
 		void reset(U* inPtr, Deleter inDel, Alloc inAlloc) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			dp::detail::shared_control_block_base* newBlock = new dp::detail::shared_block_with_allocator<StoredT, Deleter, Alloc>(inPtr, inDel, inAlloc);
 
 			m_control->dec_shared();
@@ -413,13 +284,13 @@ namespace dp {
 
 		template<typename U>
 		weak_ptr(const weak_ptr<U>& inPtr) : m_control(inPtr.m_control), m_ptr(inPtr.m_ptr) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			m_control->inc_weak();
 		}
 
 		template<typename U>
 		weak_ptr(const dp::shared_ptr<U>& inPtr) : m_control(inPtr.m_control), m_ptr(inPtr.get()) {
-			dp::static_assert_98<dp::detail::valid_shared_cont_type<U, StoredT>::value>();
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			m_control->inc_weak();
 		}
 
@@ -434,14 +305,14 @@ namespace dp {
 		}
 
 		template<typename U>
-		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, weak_ptr&>::type operator=(const weak_ptr<U>& inPtr) {
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, weak_ptr&>::type operator=(const weak_ptr<U>& inPtr) {
 			weak_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
 		}
 
 		template<typename U>
-		typename dp::enable_if<dp::detail::valid_shared_cont_type<U, StoredT>::value, weak_ptr&>::type operator=(const dp::shared_ptr<U>& inPtr) {
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, weak_ptr&>::type operator=(const dp::shared_ptr<U>& inPtr) {
 			weak_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
