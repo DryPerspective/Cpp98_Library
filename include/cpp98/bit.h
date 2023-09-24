@@ -6,8 +6,8 @@
 #include <climits>
 #include <limits>
 
-#include "type_traits.h"
-#include "array.h"
+#include "cpp98/type_traits.h"
+#include "cpp98/array.h"
 
 namespace dp{
 
