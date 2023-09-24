@@ -185,6 +185,18 @@ namespace dp{
 		}
 	};
 
+	/*
+	*  DISABLER NON-DEFINITIONS
+	*/
+	template<typename T>
+	class scoped_ptr<T&>;
+
+	template<typename T, typename Del>
+	class scoped_ptr<T, Del&>;
+
+	template<typename T, typename Del>
+	class scoped_ptr<T&, Del&>;
+
 
 	/*
 	* UTILITY FUNCTIONS
@@ -319,6 +331,18 @@ namespace dp{
 		}
 
 	};
+
+	/*
+	*  DISABLER NON-DEFINITIONS
+	*/
+	template<typename T>
+	class lite_ptr<T&>;
+
+	template<typename T, typename Del>
+	class lite_ptr<T, Del&>;
+
+	template<typename T, typename Del>
+	class lite_ptr<T&, Del&>;
 	
 
 	/*

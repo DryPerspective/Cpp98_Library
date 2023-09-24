@@ -151,6 +151,10 @@ namespace dp {
 		}
 	};
 
+	//Undefined to prevent use
+	template<typename T>
+	class cow_ptr<T&>;
+
 	template<typename StoredT>
 	void swap(dp::cow_ptr<StoredT>& lhs, dp::cow_ptr<StoredT>& rhs){
 		lhs.swap(rhs);

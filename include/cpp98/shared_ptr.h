@@ -356,6 +356,15 @@ namespace dp {
 	};
 
 	/*
+	*	PREVENTATIVE NON-DEFINITIONS
+	*/
+	template<typename T>
+	class shared_ptr<T&>;
+
+	template<typename T>
+	class weak_ptr<T&>;
+
+	/*
 	*  HELPER CLASSES AND FUNCTIONS
 	*/
 

@@ -11,7 +11,7 @@ namespace dp {
 
 	//Note, copy semantics as we're preC++11
 	template<typename T, typename U>
-	T exchange(T& obj, U& new_value) {
+	T exchange(T& obj, const U& new_value) {
 		T old_value = obj;
 		obj = new_value;
 		return old_value;
