@@ -11,17 +11,15 @@
 namespace dp{
 
 class type_index{
-    std::type_info* m_info; 
+    const std::type_info* m_info; 
 
     const std::type_info& get() const{
         return *m_info;
     }   
 
     public:
-    //Const-cast is evil. I don't like it.
-    //But this class must be copy-assignable and it doesn't perform any non-const checks 
-    //on the held pointer.
-    type_index(const std::type_info& in) : m_info(const_cast<std::type_info*>(&in)) {}
+
+    type_index(const std::type_info& in) : m_info(&in) {}
 
     const char* name() const{
         return m_info->name();
