@@ -5,11 +5,25 @@
 
 #include "bits/smart_ptr_bases.h"
 #include "bits/static_assert_no_macro.h"
+#include "bits/version_defs.h"
 
 #include <algorithm>
 #include <ostream>
 
+
+
+#ifndef DP_CPP17_OR_HIGHER
+#include <memory>
+#endif
+
 namespace dp {
+
+	//Forward decs
+	template<typename T, typename DelT>
+	class scoped_ptr;
+
+	template<typename T, typename DelT>
+	class lite_ptr;
 
 
 	/*
@@ -28,6 +42,9 @@ namespace dp {
 
 		stored_type* m_ptr;
 		BlockT* m_control;
+
+		template<typename U>
+		friend class cow_ptr;
 
 		void make_copy() {
 			//If we're not the only pointer using the resource
@@ -64,6 +81,24 @@ namespace dp {
 			if (m_control) m_control->inc_shared();
 		}
 
+		//Other smart ptr constructors
+		template<typename U, typename DelT>
+		cow_ptr(dp::scoped_ptr<U, DelT>& in) : m_ptr(in.get()), m_control(new dp::detail::shared_block_with_deleter<StoredT, DelT>(in.release(), in.get_deleter())) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
+
+		template<typename U, typename DelT>
+		cow_ptr(dp::lite_ptr<U, DelT>& in) : m_ptr(in.get()), m_control(new dp::detail::shared_block_with_deleter<StoredT, DelT>(in.release(), in.get_deleter())) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
+
+#ifndef DP_CPP17_OR_HIGHER
+		template<typename U>
+		cow_ptr(std::auto_ptr<U>& in) : m_ptr(in.get()), m_control(new dp::detail::shared_block_no_deleter<StoredT>(in.release())) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
+#endif
+
 		template<typename U>
 		cow_ptr(const dp::cow_ptr<U>& inPtr) : m_ptr(inPtr.m_ptr), m_control(inPtr.m_control) {
 			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
@@ -75,6 +110,35 @@ namespace dp {
 		}
 
 		cow_ptr& operator=(const cow_ptr& inPtr) {
+			cow_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
+		}
+
+		template<typename U>
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, cow_ptr&>::type operator=(const cow_ptr<U>& inPtr) {
+			cow_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
+		}
+#ifndef DP_CPP17_OR_HIGHER
+		template<typename U>
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, cow_ptr&>::type operator=(std::auto_ptr<U>& inPtr) {
+			cow_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
+		}
+#endif
+
+		template<typename U, typename DelT>
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, cow_ptr&>::type operator=(dp::scoped_ptr<U, DelT>& inPtr) {
+			cow_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
+		}
+
+		template<typename U, typename DelT>
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, cow_ptr&>::type operator=(dp::lite_ptr<U, DelT>& inPtr) {
 			cow_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
