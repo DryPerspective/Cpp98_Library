@@ -250,14 +250,24 @@ namespace dp {
 				//We separate them because custom deallocation is a little more complex.
 				typedef typename AllocT::rebind<shared_block_with_allocator<StoredT, DelT, AllocT> >::other alloc_type;
 				shared_block_with_allocator* newBlock = NULL;
+				alloc_type all;
 				try {
-					alloc_type all;
 					newBlock = all.allocate(sizeof(shared_block_with_allocator<StoredT, DelT, AllocT>));
+				}
+				catch (...) {
+					DelT newDeleter(m_deleter);
+					newDeleter(newPtr);
+					throw;
+				}
+				
+				try {
 					::new (newBlock) shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), Alloc(m_alloc));
 				}
 				catch (...) {
-					alloc_type all;
 					all.deallocate(newBlock, sizeof(shared_block_with_allocator));
+					DelT newDeleter(m_deleter);
+					newDeleter(newPtr);
+					throw;
 				}
 				return newBlock;
 			}
