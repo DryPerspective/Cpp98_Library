@@ -4,6 +4,9 @@
 #include <typeinfo>
 
 #include "cpp98/type_traits.h"
+#include "bits/version_defs.h"
+
+
 
 namespace dp {
 	//Default delete. "Publicly visible" in namespace dp
@@ -19,12 +22,14 @@ namespace dp {
 			delete[] in;
 		}
 	};
+	#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
 	template<typename T, std::size_t N>
 	struct default_delete<T[N]> {
 		void operator()(T* in) {
 			delete[] in;
 		}
 	};
+	#endif
 
 	namespace detail {
 
@@ -79,10 +84,11 @@ namespace dp {
 
 		//Shared base for all control block types.
 		class shared_control_block_base {
+		protected:
 			shared_control_block_base(const shared_control_block_base&);
 			shared_control_block_base& operator=(const shared_control_block_base&);
 
-		protected:
+		
 			shared_control_block_base() : shared_count(1), weak_count(1) {}
 
 			virtual ~shared_control_block_base() {}
@@ -225,7 +231,11 @@ namespace dp {
 			}
 			void destroy_block() {
 				typename AllocT::rebind<shared_block_with_allocator>::other dealloc;
+#ifndef DP_CPP20_OR_HIGHER
+				dealloc.destroy(this);
+#else
 				this->~shared_block_with_allocator();
+#endif
 				dealloc.deallocate(this, sizeof(shared_block_with_allocator));
 			}
 
@@ -261,7 +271,11 @@ namespace dp {
 				}
 				
 				try {
-					::new (newBlock) shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), Alloc(m_alloc));
+#ifndef DP_CPP20_OR_HIGHER
+					all.construct(newBlock, shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), AllocT(m_alloc)));
+#else
+					::new (newBlock) shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), AllocT(m_alloc));
+#endif
 				}
 				catch (...) {
 					all.deallocate(newBlock, sizeof(shared_block_with_allocator));
@@ -281,13 +295,20 @@ namespace dp {
 		/*
 		*  VALIDITY CHECK FOR "Compatible" conversions
 		*/
+		#ifndef DP_BORLAND
 		template<typename Y, typename T>
 		struct compatible_ptr_type {
 			static const bool value = dp::is_convertible<Y*, T*>::value ||
-					((dp::is_array<T>::value || dp::is_array<Y>::value) && 
+					((dp::is_array<T>::value || dp::is_array<Y>::value) &&
 					dp::is_same<typename dp::remove_extent<Y>::type, typename dp::remove_cv<typename dp::remove_extent<T>::type>::type>::value);
 		};
-		
+		#else
+        //In borland-land we must be more restrictive, because we have fewer tools.
+		template<typename Y, typename T>
+		struct compatible_ptr_type{
+			static const bool value = dp::is_same<Y,T>::value;
+		};
+		#endif
 
 
 	}

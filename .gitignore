@@ -19,3 +19,4 @@
 /include/cpp98/__recovery
 /include/bits/__recovery
 /include/borland/__recovery
+/include/cpp98/forward_list.h

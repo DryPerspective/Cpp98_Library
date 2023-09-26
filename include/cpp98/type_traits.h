@@ -20,6 +20,8 @@
 #include <cctype>
 #include <algorithm>
 
+#include "bits/version_defs.h"
+
 namespace dp{
 
 /*
@@ -227,6 +229,7 @@ struct is_unbounded_array<T[]> : true_type {};
 /*
 *   SUPPORTED OPERATIONS
 */
+#ifndef DP_BORLAND
 template<typename T, typename U>
 struct is_convertible{
 private:
@@ -336,7 +339,7 @@ struct is_swappable_with : detail::is_swappable_with<T,U> {};
 
 template<typename T>
 struct is_swappable : detail::is_swappable_with<T,T> {};
-
+#endif
 
 
 
@@ -349,7 +352,7 @@ template<typename T>
 struct rank : integral_constant<std::size_t, 0> {};
 template<typename T>
 struct rank<T[]> : integral_constant<std::size_t, rank<T>::value + 1> {};
-#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
+#ifndef DP_BORLAND
 template<typename T, std::size_t N>
 struct rank<T[N]> : integral_constant<std::size_t, rank<T>::value + 1> {};
 #endif
@@ -361,7 +364,7 @@ template<typename T>
 struct extent<T[], 0> : integral_constant<std::size_t, 0> {};
 template<typename T, unsigned int N>
 struct extent<T[], N> : extent<T, N - 1> {};
-#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
+#ifndef DP_BORLAND
 template<typename T, std::size_t I>
 struct extent<T[I], 0> : integral_constant<std::size_t, I> {};
 template<typename T, std::size_t I, unsigned int N>
@@ -377,7 +380,7 @@ struct is_same : false_type{};
 template<typename T>
 struct is_same<T,T> : true_type{};
 
-
+#ifndef DP_BORLAND
 template<typename B, typename D>
 struct is_base_of{
     private:
@@ -389,7 +392,7 @@ struct is_base_of{
     public:
     static const bool value = sizeof(test(static_cast<D*>(0))) == sizeof(Yes);
 };
-
+#endif
 
 /*
 * TYPE MODIFIERS
@@ -479,7 +482,7 @@ template<typename T>
 struct remove_extent<T[]>{
     typedef T type;
 };
-#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
+#ifndef DP_BORLAND
 template<typename T, std::size_t N>
 struct remove_extent<T[N]>{
 	typedef T type;
@@ -494,7 +497,7 @@ template<typename T>
 struct remove_all_extents<T[]> {
     typedef typename remove_all_extents<T>::type type;
 };
-#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
+#ifndef DP_BORLAND
 template<typename T, std::size_t N>
 struct remove_all_extents<T[N]> {
 	typedef typename remove_all_extents<T>::type type;
@@ -609,7 +612,7 @@ namespace detail{
     struct make_signed<unsigned long, false>{
         typedef signed long type;
 	};
-#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
+#ifndef DP_BORLAND
     //Char types have a specific form of conversion we need
     //char avoid this by having signed and unsigned variants; wchar_t does not
     template<>
@@ -645,7 +648,7 @@ namespace detail{
     struct make_unsigned<signed long, false>{
         typedef unsigned long type;
 	};
-#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
+#ifndef DP_BORLAND
 	template<>
 	struct make_unsigned<wchar_t, false>{
 		typedef typename conditional<sizeof(unsigned int) >= sizeof(wchar_t),

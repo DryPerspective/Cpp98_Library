@@ -35,6 +35,19 @@
 #define DP_CPP23_OR_HIGHER
 #endif
 
+#if defined(__BORLANDC__) && __BORLANDC__ < 0x0740
+/*
+*  Borland's *wonderful* compiler cannot do a great many things. These things include but are not limited to:
+*  Using function overloads when resolving templates (goodbye SFINAE)
+*  Disambiguating array templates T[] vs T[N] (bounded and unbounded arrays are the same, apparently)
+*  Recognising template functions without complaining that it doesn't know they are a function (make_shared generated an error "templates must be classes or functions" a fair few times)
+*  
+*  As such it has become increasingly impractical put a full if !defined(__BORLANDC__) || __BORLANDC__ >= 0x740 all over the code. Instead we do this.
+*  I expect this will become a common fixture in the library
+*/
+#define DP_BORLAND
+#endif
+
 
 
 
