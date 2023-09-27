@@ -60,7 +60,7 @@ namespace dp{
 			explicit scoped_ptr_base(pointer in, deleter_type del_inst) : detail::deleter_holder<T, Deleter>(del_inst), m_data(in) {}
 
 			template<typename ValT, typename DelT>
-			explicit scoped_ptr_base(scoped_ptr_base<ValT, DelT>& inPtr) : detail::deleter_holder<T, Deleter>(inPtr.get_deleter()), m_data(in.release()) {}
+			explicit scoped_ptr_base(scoped_ptr_base<ValT, DelT>& inPtr) : detail::deleter_holder<T, Deleter>(inPtr.get_deleter()), m_data(inPtr.release()) {}
 
 #ifndef DP_CPP17_OR_HIGHER
 			explicit scoped_ptr_base(std::auto_ptr<T>& in) : m_data(in.release()) {}
@@ -293,7 +293,7 @@ namespace dp{
 		T* get() { return m_data; }
 
 		Deleter get_deleter() const {
-			return Deleter;
+			return Deleter();
 		}
 
 		void swap(lite_ptr& other) {

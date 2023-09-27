@@ -98,7 +98,7 @@ struct ratio_greater : dp::integral_constant<bool, dp::ratio_less<R2,R1>::value>
 template<typename R1, typename R2>
 struct ratio_greater_equal : dp::integral_constant<bool, dp::ratio_less_equal<R2,R1>::value> {};
 
-#ifndef DP_BORLAND
+#if INT_MAX >= 1000000000000000000
 typedef dp::ratio<1,       1000000000000000000> atto;
 typedef dp::ratio<1,          1000000000000000> femto;  
 typedef dp::ratio<1,             1000000000000> pico;
@@ -113,7 +113,7 @@ typedef dp::ratio<                      100, 1> hecto;
 typedef dp::ratio<                     1000, 1> kilo;   
 typedef dp::ratio<                  1000000, 1> mega;   
 typedef dp::ratio<               1000000000, 1> giga;
-#ifndef DP_BORLAND
+#if INT_MAX >= 1000000000000000000
 typedef dp::ratio<            1000000000000, 1> tera;   
 typedef dp::ratio<         1000000000000000, 1> peta;   
 typedef dp::ratio<      1000000000000000000, 1> exa;

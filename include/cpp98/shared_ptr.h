@@ -73,7 +73,7 @@ namespace dp {
 
 	private:
 
-		typedef typename StoredT stored_type;   //Two-phase lookup fixer
+		typedef StoredT stored_type;   //Two-phase lookup fixer
 		
 		//NB: Correct constructors before changing order.
 		//Other smart pointer ctors rely on this order
