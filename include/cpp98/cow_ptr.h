@@ -73,25 +73,24 @@ namespace dp {
 		}
 
 		template<typename U, typename DelT, typename Alloc>
-		cow_ptr(U* in, DelT inDel, Alloc alloc) : m_ptr(in) {
+		cow_ptr(U* inPtr, DelT inDel, Alloc inAlloc) : m_ptr(inPtr) {
 			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
 			typedef typename Alloc::rebind<dp::detail::shared_block_with_allocator<U, DelT, Alloc> >::other Rebind;
 			Rebind rb;
 			m_control = rb.allocate(sizeof(dp::detail::shared_block_with_allocator<U, DelT, Alloc>));
 			try {
-#ifndef DP_CPP20_OR_HIGHER
+#if !defined(DP_CPP20_OR_HIGHER) && !defined(DP_NO_ALLOC_CONSTRUCT)
 				rb.construct(m_control, dp::detail::shared_block_with_allocator<U, DelT, Alloc>(inPtr, inDel, inAlloc));
 #else
 				::new (m_control) dp::detail::shared_block_with_allocator<U, DelT, Alloc>(inPtr, inDel, inAlloc);
 #endif
 			}
 			catch (...) {
-				rb.deallocate(m_control);
+				rb.deallocate(static_cast<dp::detail::shared_block_with_allocator<U, DelT, Alloc>*>(m_control), sizeof(dp::detail::shared_block_with_allocator<U, DelT, Alloc>));
 				throw;
 			}
-			enable_from_this_check<U, StoredT, dp::is_base_of<dp::enable_shared_from_this<U>, U>::value>()(inPtr, *this);
 		}
-		
+
 
 		cow_ptr(const cow_ptr& inPtr) : m_ptr(inPtr.m_ptr), m_control(inPtr.m_control) {
 			if (m_control) m_control->inc_shared();
@@ -206,11 +205,11 @@ namespace dp {
 
 		const element_type& operator[](std::size_t index) const {
 			dp::static_assert_98<dp::is_array<StoredT>::value>();
-			return get()[index];
+			return m_ptr[index];
 		}
 		element_type& operator[](std::size_t index) {
 			dp::static_assert_98<dp::is_array<StoredT>::value>();
-			return get()[index];
+			return m_ptr[index];
 		}
 
 		std::size_t use_count() const {

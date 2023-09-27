@@ -1,6 +1,8 @@
 #ifndef DP_CPP98_TYPE_TRAITS_NONSTANDARD
 #define DP_CPP98_TYPE_TRAITS_NONSTANDARD
 
+#include "bits/version_defs.h"
+
 #include "cpp98/type_traits.h"
 
 /*
@@ -19,6 +21,47 @@ namespace dp {
         static const std::size_t smaller_size = sizeof(smaller_type);
     };
 
+    namespace detail{
+#ifndef DP_BORLAND
+        //is_convertible relies on a SFINAE trick which borland never implemented.
+        template<typename Iter, typename Tag, bool = dp::is_convertible<typename std::iterator_traits<Iter>::iterator_category, Tag>::value >
+        struct is_iter_category : dp::false_type {};
+
+        template<typename Iter, typename Tag>
+        struct is_iter_category<Iter, Tag, true> : dp::true_type {};
+#else
+        template<typename Iter, typename Tag>
+        struct is_iter_category : dp::false_type {};
+
+        template<typename Iter>
+        struct is_iter_category<Iter, std::input_iterator_tag> {
+            static const bool value = dp::is_same<typename std::iterator_traits<Iter>::iterator_category, std::input_iterator_tag>::value;
+        };
+
+        template<typename Iter>
+        struct is_iter_category<Iter, std::output_iterator_tag> {
+            static const bool value = dp::is_same<typename std::iterator_traits<Iter>::iterator_category, std::input_iterator_tag>::value;
+        };
+
+        template<typename Iter>
+        struct is_iter_category<Iter, std::random_access_iterator_tag> {
+            static const bool value = dp::is_same<typename std::iterator_traits<Iter>::iterator_category, std::random_access_iterator_tag>::value;
+        };
+
+        template<typename Iter>
+        struct is_iter_category<Iter, std::bidirectional_iterator_tag> {
+            static const bool value = dp::detail::is_iter_category<Iter, std::random_access_iterator_tag>::value || dp::is_same<typename std::iterator_traits<Iter>::iterator_category, std::bidirectional_iterator_tag>::value;
+        };
+
+        template<typename Iter>
+        struct is_iter_category<Iter, std::forward_iterator_tag> {
+            static const bool value = dp::detail::is_iter_category<Iter, std::bidirectional_iterator_tag>::value || dp::is_same<typename std::iterator_traits<Iter>::iterator_category, std::bidirectional_iterator_tag>::value;
+        };
+
+
+
+#endif
+    }
 
     /*
     *  A means to examine and extract the nth template type for a particular template
