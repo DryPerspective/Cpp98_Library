@@ -231,7 +231,7 @@ namespace dp {
 			}
 			void destroy_block() {
 				typename AllocT::rebind<shared_block_with_allocator>::other dealloc;
-#if !defined(DP_CPP20_OR_HIGHER) && !defined(DP_NO_ALLOC_CONSTRUCT)
+#ifndef DP_CPP20_OR_HIGHER
 				dealloc.destroy(this);
 #else
 				this->~shared_block_with_allocator();
@@ -271,7 +271,7 @@ namespace dp {
 				}
 				
 				try {
-#if !defined(DP_CPP20_OR_HIGHER) && !defined(DP_NO_ALLOC_CONSTRUCT)
+#ifndef DP_CPP20_OR_HIGHER
 					all.construct(newBlock, shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), AllocT(m_alloc)));
 #else
 					::new (newBlock) shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), AllocT(m_alloc));
@@ -306,9 +306,7 @@ namespace dp {
         //In borland-land we must be more restrictive, because we have fewer tools.
 		template<typename Y, typename T>
 		struct compatible_ptr_type{
-			static const bool value = dp::is_same<Y,T>::value ||
-				((dp::is_array<T>::value || dp::is_array<Y>::value) &&
-					dp::is_same<typename dp::remove_extent<Y>::type, typename dp::remove_cv<typename dp::remove_extent<T>::type>::type>::value);
+			static const bool value = dp::is_same<Y,T>::value;
 		};
 		#endif
 

@@ -5,8 +5,6 @@
 #include <exception>
 #include <algorithm> //For std::swap, which lived in <algorithm> before C++11
 
-#include "bits/version_defs.h"
-
 #include "bits/optional_expected_base.h"
 
 /*
@@ -54,50 +52,18 @@ public:
 	//Public facing typedef. Less ugly than public-private-public switcheroo to use the other one
 	typedef T value_type;
 
-	optional() : Base(false) {}
-	optional(nullopt_t) : Base(false) {}
-
-	optional(const optional& other) : Base(other) {}
+	explicit optional() : Base(false) {}
+	explicit optional(nullopt_t) : Base(false) {}
 
 	template<typename U>
-	optional(const optional<U>& other) : Base(other) {}
+	explicit optional(const optional<U>& other) : Base(other) {}
 
 	template<typename U>
 	optional(const U& in) : Base(in) {}
 
 	~optional() {}
 
-	#ifndef DP_BORLAND
-	//No clude what the error here is, except that that Borland seems to think that Base isn't a base of this class.
-	//Error message is just "detail::opt_exp_base<T, sizeof(T)> is not a base of optional<T>"
 	using Base::operator=;
-	#else
-	template<typename U>
-	optional& operator=(const U& in) {
-		if (m_HasValue) {
-			using std::swap;
-			T copy(in);
-			swap(storedObject(), copy);
-		}
-		else {
-			new (m_Storage) T(in);
-			m_HasValue = true;
-		}
-		return *this;
-	}
-
-	template<typename U>
-	optional& operator=(const optional<U>& in) {
-		optional<T> copy(in);
-		this->swap(copy);
-		return *this;
-	}
-	#endif
-
-	optional& operator=(dp::nullopt_t){
-		this->reset();
-		return *this;
-	}
 
 	//Not shared because of differing exceptions thrown.
 	T& value() {

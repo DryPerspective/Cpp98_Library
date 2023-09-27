@@ -1,8 +1,6 @@
 #ifndef DP_CPP98_BYTE
 #define DP_CPP98_BYTE
 
-#include "bits/version_defs.h"
-
 #include "bits/static_assert_no_macro.h"
 
 #include "cpp98/type_traits.h"
@@ -18,13 +16,9 @@
 
 
 
-
-
 namespace dp {
 
-#ifndef DP_BORLAND
-//Borland compiler takes a creative interpretation of the standard for friend functions
-//The simplest solution is to just avoid that mess. So yes, the Borland compiler has much weaker encapsulation
+
 	class byte {
 		unsigned char val;
 
@@ -42,27 +36,14 @@ namespace dp {
 		friend inline dp::byte& operator&=(dp::byte& lhs, dp::byte rhs);
 		friend inline dp::byte& operator^=(dp::byte& lhs, dp::byte rhs);
 
-#else
-	struct byte{
-
-		unsigned char val;
-#endif
 	public:
 		explicit byte() : val(0) {}
 		explicit byte(unsigned char in) : val(in) {}	//To match C++17 relaxed enum initialization rules
 	};
 
-
-
 	//I don't like this approach either, but I dohn't have a lot of options
 	//And to be honest, odds are this will never be a problem as almost all systems will have byte be one byte in size.
-	static const dp::static_assert_98<sizeof(dp::byte) == 1> dp_assert_byte_size
-	//Borland says that this must be initialised, C++ says it mustn't. Go figure.
-#ifdef DP_BORLAND
-	= {}
-#endif
-	;
-
+	static const dp::static_assert_98<sizeof(dp::byte) == 1> dp_assert_byte_size;
 
 	template<typename IntType>
 	typename dp::enable_if<dp::is_integral<IntType>::value, IntType>::type to_integer(const dp::byte& in) {

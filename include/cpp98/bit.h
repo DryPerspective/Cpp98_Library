@@ -6,8 +6,6 @@
 #include <climits>
 #include <limits>
 
-#include "bits/version_defs.h"
-
 #include "cpp98/type_traits.h"
 #include "cpp98/array.h"
 
@@ -24,13 +22,11 @@ namespace dp{
 *   Honestly, this is a bit safer than a reinterpret_cast, but don't be complacent with it
 */
 template<typename To, typename From>
-typename dp::enable_if<sizeof(To) == sizeof(From)
-#ifndef DP_BORLAND
-					 && dp::is_copy_constructible<To>::value &&
+typename dp::enable_if<sizeof(To) == sizeof(From) &&
+                      dp::is_copy_constructible<To>::value &&
                       dp::is_copy_constructible<From>::value &&
-					  dp::is_default_constructible<To>::value
-#endif
-					  ,To>::type
+                      dp::is_default_constructible<To>::value,
+                      To>::type
                       bit_cast(const From& from){
                             To dst;
                             std::memcpy(&dst, &from, sizeof(To));

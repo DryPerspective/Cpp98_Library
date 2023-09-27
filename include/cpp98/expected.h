@@ -68,7 +68,6 @@ namespace dp{
             return *reinterpret_cast<const ErrT*>(Base::m_Storage);
         }
 
-        //Private because unlike optional, expected must always hold a value.
         void reset() {
             if (this->has_value()) this->storedObject().~ValT();
             else storedError().~ErrT();
