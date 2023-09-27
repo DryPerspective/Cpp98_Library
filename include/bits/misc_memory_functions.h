@@ -35,7 +35,8 @@ namespace dp {
     *  So we take the longer way around.
     */
 
-    namespace detail {
+#ifndef DP_BORLAND
+	namespace detail {
         template<typename T>
         struct HasElemTypeMember {
         private:
@@ -112,8 +113,6 @@ namespace dp {
         struct rebind {
             typedef U* type;
         };
-
-
     };
 
     /*
@@ -177,7 +176,7 @@ namespace dp {
         return p;
     }
 
-    template<typename T>
+	template<typename T>
     typename dp::enable_if<dp::detail::HasPtrToAddress<T>::value, T*>::type to_address(const T& inPtr) {
         return dp::pointer_traits<T>::pointer_to(inPtr);
     }
@@ -185,7 +184,7 @@ namespace dp {
     typename dp::enable_if<!dp::detail::HasPtrToAddress<T>::value, T*>::type to_address(const T& inPtr) {
         return dp::to_address(inPtr.operator->());
     }
-
+#endif
     template<typename T>
     T* addressof(T& in) {
         return reinterpret_cast<T*>(
@@ -317,8 +316,9 @@ namespace dp {
 
 
 
-
 }
+
+
 
 
 

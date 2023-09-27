@@ -131,7 +131,7 @@ namespace dp {
 #endif
 			}
 			catch (...) {
-				rb.deallocate(static_cast<dp::detail::shared_block_with_allocator<U, DelT, Alloc>*>(m_control), sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
+				rb.deallocate(static_cast<dp::detail::shared_block_with_allocator<U, Deleter, Alloc>*>(m_control), sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
 				throw;
 			}
 			detail::enable_from_this_check<U,stored_type>()(inPtr,*this);

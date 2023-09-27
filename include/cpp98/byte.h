@@ -58,9 +58,9 @@ namespace dp {
 	//And to be honest, odds are this will never be a problem as almost all systems will have byte be one byte in size.
 	static const dp::static_assert_98<sizeof(dp::byte) == 1> dp_assert_byte_size
 	//Borland says that this must be initialised, C++ says it mustn't. Go figure.
-	#ifdef DP_BORLAND
+#ifdef DP_BORLAND
 	= {}
-    #endif
+#endif
 	;
 
 
