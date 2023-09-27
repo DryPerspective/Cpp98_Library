@@ -5,8 +5,11 @@
 #include <iterator>
 #include <functional>
 
+#include "bits/version_defs.h"
+
 #include "cpp98/type_traits.h"
 #include "cpp98/iterator.h"
+#include "bits/type_traits_ns.h"
 
 /*
 *  The algorithms in the <algorithm> header which were added from C++11 onwards, recreated (where possible) here
@@ -75,11 +78,6 @@ namespace dp {
 
 
 	namespace detail {
-		template<typename Iter, typename Tag, bool = dp::is_convertible<typename std::iterator_traits<Iter>::iterator_category, Tag>::value >
-		struct is_iter_category : dp::false_type {};
-
-		template<typename Iter, typename Tag>
-		struct is_iter_category<Iter, Tag, true> : dp::true_type {};
 
 		template<typename Iter>
 		typename dp::enable_if<dp::detail::is_iter_category<Iter, std::bidirectional_iterator_tag>::value, typename std::iterator_traits<Iter>::difference_type>::type 

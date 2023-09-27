@@ -39,7 +39,7 @@
 #include "cpp98/typeindex.h"
 #include "cpp98/utility.h"
 
-#ifndef DP_NO_INCLUDE_BORLAND
+#ifdef __BORLANDC__
 #include "borland/borland_strings.h"
 #endif
 

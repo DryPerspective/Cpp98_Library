@@ -50,10 +50,10 @@ namespace dp {
 			}
 		};
 #else
-		//Again, borland ties our hands
+		//Again, borland ties our hands. enable_shared_from_this is effectively dead in Borland land
 		template<typename T,typename U>
 		struct enable_from_this_check {
-			void operator()(T*, U) {}
+			void operator()(T*, const dp::shared_ptr<U>&) {}
 		};
 #endif
 	}
@@ -123,11 +123,17 @@ namespace dp {
 			typedef typename Alloc::rebind<dp::detail::shared_block_with_allocator<U, Deleter, Alloc> >::other Rebind;
 			Rebind rb;
 			m_control = rb.allocate(sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
-#ifndef DP_CPP20_OR_HIGHER
-			rb.construct(m_control, dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc));
+			try {
+#if !defined(DP_CPP20_OR_HIGHER) && !defined(DP_NO_ALLOC_CONSTRUCT)
+				rb.construct(m_control, dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc));
 #else
-			::new (m_control) dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc);
+				::new (m_control) dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc);
 #endif
+			}
+			catch (...) {
+				rb.deallocate(static_cast<dp::detail::shared_block_with_allocator<U, DelT, Alloc>*>(m_control), sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
+				throw;
+			}
 			detail::enable_from_this_check<U,stored_type>()(inPtr,*this);
 		}
 
