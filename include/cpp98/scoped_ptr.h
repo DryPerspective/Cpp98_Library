@@ -239,6 +239,19 @@ namespace dp{
 		return !(lhs < rhs);
 	}
 
+	namespace detail {
+		//Borland has trouble with identifying functions.
+		//So instead we provide a slightly less bulletproof options for them.
+		template<typename Deleter>
+		struct assert_not_fptr {
+#ifndef DP_BORLAND			
+			typename dp::static_assert_98<!dp::is_function<typename dp::remove_pointer<Deleter>::type>::value> assertion;
+#else
+			typename dp::static_assert_98<!dp::is_pointer<Deleter>::value> assertion;
+#endif
+		};
+	}
+
 
 	/*
 	*  LITE POINTER
@@ -259,11 +272,16 @@ namespace dp{
 		typedef T       element_type;
 		typedef T* pointer;
 
-		explicit lite_ptr(T* in = NULL) : m_data(in) {}
+
+		explicit lite_ptr(T* in = NULL) : m_data(in) {
+			detail::assert_not_fptr<Deleter>();			
+		}
 
 
 #ifndef DP_CPP17_OR_HIGHER
-		explicit lite_ptr(std::auto_ptr<T>& in) : m_data(in.release()) {}
+		explicit lite_ptr(std::auto_ptr<T>& in) : m_data(in.release()) {
+			detail::assert_not_fptr<Deleter>();
+		}
 #endif
 
 		~lite_ptr() {
