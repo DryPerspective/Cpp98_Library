@@ -10,6 +10,9 @@
 #include "cpp98/type_traits.h"
 #include "cpp98/utility.h"
 
+#include "bits/type_traits_ns.h"
+#include "bits/version_defs.h"
+
 /*
 *   Much of the modern <iterator> header is C++20 concepts and changes to support C++20 ranges.
 *   This library does not support either of those, so this header will be a lighter recreation than most.
@@ -362,6 +365,9 @@ namespace dp {
     *   The idea being that instead of auto it = std::begin(range); you can do typename dp::iterator_type<T>::type it = dp::begin(range)
     *   Though hopefully you'd use a typedef to cut down on the verbosity.
     *   Don't forget to check const correctness manually. A const T which tries to use iterator_type<T> will probably create compile issues
+    * 
+    *   Apologies about the borland polyfill, but it can't correctly detect functions so it can't correctly use decay.
+    *   This is only safe here because we know it's an array type in all cases where we use decay_array
     */
     namespace detail {
         template<typename T, bool = dp::is_array<T>::value>
@@ -370,7 +376,11 @@ namespace dp {
         };
         template<typename T>
         struct iter_type<T, true> {
+#ifndef DP_BORLAND
             typedef typename dp::decay<T>::type type;
+#else
+            typedef typename dp::decay_array<T>::type type;
+#endif
         };
 
         template<typename T, bool = dp::is_array<T>::value>
@@ -379,7 +389,11 @@ namespace dp {
         };
         template<typename T>
         struct citer_type<T, true> {
+#ifndef DP_BORLAND
             typedef typename dp::decay<typename dp::add_const<T>::type>::type type;
+#else
+            typedef typename dp::decay_array<typename dp::add_const<T>::type>::type type;
+#endif
         };
 
         template<typename T, bool = dp::is_array<T>::value>
@@ -388,7 +402,11 @@ namespace dp {
         };
         template<typename T>
         struct riter_type<T, true> {
+#ifndef DP_BORLAND
             typedef typename std::reverse_iterator<typename dp::decay<T>::type> type;
+#else
+            typedef typename std::reverse_iterator<typename dp::decay_array<T>::type> type;
+#endif
         };
 
         template<typename T, bool = dp::is_array<T>::value>
@@ -397,7 +415,11 @@ namespace dp {
         };
         template<typename T>
         struct criter_type<T, true> {
+#ifndef DP_BORLAND
             typedef typename std::reverse_iterator<typename dp::decay<typename dp::add_const<T>::type>::type> type;
+#else
+            typedef typename std::reverse_iterator<typename dp::decay_array<typename dp::add_const<T>::type>::type> type;
+#endif
         };
 
     }

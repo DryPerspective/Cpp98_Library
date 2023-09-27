@@ -63,6 +63,18 @@ namespace dp {
 #endif
     }
 
+    namespace detail {
+        template<typename T, bool = dp::is_array<T>::value>
+        struct decay_array {
+            typedef typename dp::add_pointer<typename dp::remove_extent<T>::type>::type type;
+        };
+        template<typename T>
+        struct decay_array<T, false> {};
+    }
+
+    template<typename T>
+    struct decay_array : detail::decay_array<T> {};
+
     /*
     *  A means to examine and extract the nth template type for a particular template
     *  This is done much more elegantly (and completely) in C++11 and above with variadics and tuples

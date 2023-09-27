@@ -7,7 +7,7 @@
 *   are notably absent as they require language features not added until later versions of the standard
 *
 *   Additionally, the definitions or implementations of some traits require either compiler magic or language
-*   features added in C++11 and up which cannot be replicated here. Common bases are is_class, is_function, 
+*   features added in C++11 and up which cannot be replicated here. Common bases are is_class, 
 *   is_union, etc and everything which builds on and requires those.
 *   To be precise - is_union is compiler magic. is_class requires a check against !is_union.
 *   implementing is_class without that check is possible, but will produce different results from
@@ -116,14 +116,16 @@ template<typename T>
 struct is_array : false_type {};
 template<typename T>
 struct is_array<T[]> : true_type {};
-#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
+#ifndef DP_BORLAND
 template<typename T, std::size_t N>
 struct is_array<T[N]> : true_type {};
 #endif
 
-
+#ifndef DP_BORLAND
+//Borland compiler apparently can't get this correct.
 template<typename T>
 struct is_function : dp::integral_constant<bool, !dp::is_const<const T>::value && !dp::is_reference<T>::value> {};
+#endif
 
 template<typename T>
 struct is_pointer : false_type {};
@@ -141,7 +143,7 @@ struct is_lvalue_reference : false_type {};
 template<typename T>
 struct is_lvalue_reference<T&> : true_type {};
 
-
+#ifndef DP_BORLAND
 namespace detail{
     template<typename T>
     struct is_memfun_ptr_impl : dp::false_type {};
@@ -153,7 +155,7 @@ struct is_member_function_pointer : dp::detail::is_memfun_ptr_impl<typename dp::
 
 template<typename T>
 struct is_member_object_pointer : dp::integral_constant<bool, dp::is_member_pointer<T>::value && ! dp::is_member_function_pointer<T>::value> {};
-
+#endif
 /*
 * COMPOSITE TYPES
 */
@@ -555,6 +557,7 @@ struct conditional<true, trueT, falseT>{
     typedef trueT type;
 };
 
+#ifndef DP_BORLAND
 template<typename T>
 struct decay{
     private:
@@ -570,6 +573,7 @@ struct decay{
         >::type
     >::type type;
 };
+#endif
 
 template<typename T>
 struct remove_cvref{
