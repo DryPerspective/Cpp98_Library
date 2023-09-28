@@ -124,7 +124,7 @@ namespace dp {
 		char* errPtr = NULL;
 
 		errno = 0;
-		float val = std::strtof(ptr, &errPtr);
+		float val = std::strtod(ptr, &errPtr);
 		if (errno == ERANGE) {
 			throw std::out_of_range("string conversion out of range");
 		}
@@ -142,7 +142,7 @@ namespace dp {
 		wchar_t* errPtr = NULL;
 
 		errno = 0;
-		float val = std::wcstof(ptr, &errPtr);
+		float val = std::wcstod(ptr, &errPtr);
 		if (errno == ERANGE) {
 			throw std::out_of_range("string conversion out of range");
 		}
