@@ -241,6 +241,22 @@ namespace dp {
 	void pop_back(std::basic_string<CharT, Traits, Alloc>& str){
 		str.erase(str.end() - 1);
 	}
+	template<typename CharT, typename Traits, typename Alloc>
+	typename std::basic_string<CharT, Traits, Alloc>::const_iterator cbegin(const std::basic_string<CharT, Traits, Alloc>& in){
+		return typename std::basic_string<CharT, Traits, Alloc>::const_iterator(in.begin());
+	}
+	template<typename CharT, typename Traits, typename Alloc>
+	typename std::basic_string<CharT, Traits, Alloc>::const_iterator cend(const std::basic_string<CharT, Traits, Alloc>& in){
+		return typename std::basic_string<CharT, Traits, Alloc>::const_iterator(in.end());
+	}
+	template<typename CharT, typename Traits, typename Alloc>
+	typename std::basic_string<CharT, Traits, Alloc>::const_reverse_iterator crbegin(const std::basic_string<CharT, Traits, Alloc>& in){
+		return typename std::basic_string<CharT, Traits, Alloc>::const_reverse_iterator(in.rbegin());
+	}
+	template<typename CharT, typename Traits, typename Alloc>
+	typename std::basic_string<CharT, Traits, Alloc>::const_reverse_iterator crend(const std::basic_string<CharT, Traits, Alloc>& in){
+		return typename std::basic_string<CharT, Traits, Alloc>::const_reverse_iterator(in.rend());
+	}
 
 
 
