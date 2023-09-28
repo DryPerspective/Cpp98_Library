@@ -2,9 +2,12 @@
 #define DP_CPP98_SMART_POINTER_BASES
 
 #include <typeinfo>
+#include <memory>
 
 #include "cpp98/type_traits.h"
 #include "bits/version_defs.h"
+
+#include "bits/static_assert_no_macro.h"
 
 
 
@@ -22,7 +25,7 @@ namespace dp {
 			delete[] in;
 		}
 	};
-	#if !defined(__BORLANDC__) || __BORLANDC__ >= 0x0740
+	#ifndef DP_BORLAND
 	template<typename T, std::size_t N>
 	struct default_delete<T[N]> {
 		void operator()(T* in) {
@@ -30,6 +33,19 @@ namespace dp {
 		}
 	};
 	#endif
+
+	//Forward decs
+	template<typename, typename>
+	class scoped_ptr;
+
+	template<typename, typename>
+	class lite_ptr;
+
+	template<typename>
+	class shared_ptr;
+
+	template<typename>
+	class cow_ptr;
 
 	namespace detail {
 
@@ -318,6 +334,182 @@ namespace dp {
 					dp::is_same<typename dp::remove_extent<Y>::type, typename dp::remove_cv<typename dp::remove_extent<T>::type>::type>::value);
 		};
 		#endif
+
+
+		template<typename StoredT>
+		class shared_ownership_base {
+		public:
+			typedef typename dp::remove_extent<StoredT>::type	element_type;
+
+		protected:
+
+			typedef StoredT stored_type;   //Two-phase lookup fixer
+
+			//NB: Correct constructors before changing order.
+			//Other smart pointer ctors rely on this order
+			element_type* m_ptr;
+			detail::shared_control_block_base* m_control;
+
+			//Aliasing ctor not supported in all derived classes
+			template<typename U>
+			shared_ownership_base(const shared_ownership_base<U>& inPtr, element_type* r) : m_ptr(r), m_control(inPtr.m_control) {
+				if (m_control) m_control->inc_shared();
+			}
+
+			//Derived classes of different types should not be able to swap with each other
+			void swap(shared_ownership_base& other) {
+				using std::swap;
+				swap(m_ptr, other.m_ptr);
+				swap(m_control, other.m_control);
+			}
+
+			shared_ownership_base& operator=(const shared_ownership_base&);
+
+		public:
+
+			shared_ownership_base() : m_ptr(NULL), m_control(NULL) {}
+
+			template<typename U>
+			explicit shared_ownership_base(U* inPtr) : m_ptr(inPtr), m_control(new dp::detail::shared_block_no_deleter<stored_type>(inPtr)) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+			}
+
+			template<typename U, typename Deleter>
+			shared_ownership_base(U* inPtr, Deleter inDel) : m_ptr(inPtr), m_control(new dp::detail::shared_block_with_deleter<U, Deleter>(inPtr, inDel)) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+			}
+
+			template<typename U, typename Deleter, typename Alloc>
+			shared_ownership_base(U* inPtr, Deleter inDel, Alloc inAlloc) : m_ptr(inPtr) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+				typedef typename Alloc::rebind<dp::detail::shared_block_with_allocator<U, Deleter, Alloc> >::other Rebind;
+				Rebind rb;
+				m_control = rb.allocate(sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
+				try {
+#if !defined(DP_CPP20_OR_HIGHER)
+					dp::detail::shared_block_with_allocator<U, Deleter, Alloc>* block = NULL;
+					rb.construct(block, dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc));
+					m_control = block;
+#else
+					::new (m_control) dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc);
+#endif
+				}
+				catch (...) {
+					rb.deallocate(static_cast<dp::detail::shared_block_with_allocator<U, Deleter, Alloc>*>(m_control), sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
+					throw;
+				}
+			}
+
+			//Copy ctor
+			shared_ownership_base(const shared_ownership_base& inPtr) : m_ptr(inPtr.m_ptr), m_control(inPtr.m_control) {
+				if (m_control) m_control->inc_shared();
+			}
+			template<typename U>
+			shared_ownership_base(const shared_ownership_base<U>& inPtr) : m_ptr(inPtr.get()), m_control(inPtr.m_control) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+				if (m_control) m_control->inc_shared();
+			}
+
+#ifndef DP_CPP17_OR_HIGHER
+			template<typename U>
+			shared_ownership_base(std::auto_ptr<U>& inPtr) : m_ptr(inPtr.get()), m_control(new dp::detail::shared_block_no_deleter<stored_type>(inPtr.release())) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+			}
+#endif
+			template<typename U, typename Deleter>
+			shared_ownership_base(dp::scoped_ptr<U, Deleter>& inPtr) : m_ptr(inPtr.get()), m_control(new dp::detail::shared_block_with_deleter<stored_type, Deleter>(inPtr.release(), inPtr.get_deleter())) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+			}
+
+			template<typename U, typename Deleter>
+			shared_ownership_base(dp::lite_ptr<U, Deleter>& inPtr) : m_ptr(inPtr.get()), m_control(new dp::detail::shared_block_with_deleter<stored_type, Deleter>(inPtr.release(), inPtr.get_deleter())) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+			}
+
+
+			~shared_ownership_base() {
+				if (m_control) m_control->dec_shared();
+			}
+
+
+#ifndef DP_CPP17_OR_HIGHER
+			template<typename U>
+			typename dp::enable_if<dp::detail::compatible_ptr_type<U, stored_type>::value, shared_ownership_base&>::type operator=(std::auto_ptr<U>& inPtr) {
+				shared_ownership_base copy(inPtr);
+				this->swap(copy);
+				return *this;
+			}
+#endif
+
+			template<typename U, typename DelT>
+			typename dp::enable_if<dp::detail::compatible_ptr_type<U, stored_type>::value, shared_ownership_base&>::type operator=(dp::scoped_ptr<U, DelT>& inPtr) {
+				shared_ownership_base copy(inPtr);
+				this->swap(copy);
+				return *this;
+			}
+
+			template<typename U, typename DelT>
+			typename dp::enable_if<dp::detail::compatible_ptr_type<U, stored_type>::value, shared_ownership_base&>::type operator=(dp::lite_ptr<U, DelT>& inPtr) {
+				shared_ownership_base copy(inPtr);
+				this->swap(copy);
+				return *this;
+			}
+
+			void reset() {
+				m_control->dec_shared();
+				m_control = NULL;
+				m_ptr = NULL;
+			}
+
+			template<typename U>
+			void reset(U* inPtr) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+				//Do the potentially throwing thing first
+				dp::detail::shared_control_block_base* newBlock = new dp::detail::shared_block_no_deleter<stored_type>(inPtr);
+
+				//Then, since simple pointer assignment shouldn't throw, we can provide the strong exception guarantee.
+				m_control->dec_shared();
+				m_ptr = inPtr;
+				m_control = newBlock;
+			}
+			template<typename U, typename Deleter>
+			void reset(U* inPtr, Deleter inDel) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+				dp::detail::shared_control_block_base* newBlock = new dp::detail::shared_block_with_deleter<stored_type, Deleter>(inPtr, inDel);
+
+				m_control->dec_shared();
+				m_ptr = inPtr;
+				m_control = newBlock;
+			}
+			template<typename U, typename Deleter, typename Alloc>
+			void reset(U* inPtr, Deleter inDel, Alloc inAlloc) {
+				dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
+				dp::detail::shared_control_block_base* newBlock = new dp::detail::shared_block_with_allocator<stored_type, Deleter, Alloc>(inPtr, inDel, inAlloc);
+
+				m_control->dec_shared();
+				m_ptr = inPtr;
+				m_control = newBlock;
+			}
+
+
+
+			std::size_t use_count() const {
+				return m_control->shared_count;
+			}
+
+			bool unique() const {
+				return use_count() == 1;
+			}
+
+			operator bool() const {
+				return m_ptr != NULL;
+			}
+
+
+		};
+
+
+
 
 
 	}
