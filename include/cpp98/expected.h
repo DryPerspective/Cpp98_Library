@@ -7,6 +7,7 @@
 #include "bits/type_traits_ns.h"
 
 namespace dp{
+#ifndef DP_BORLAND_EXCEPTIONS
     template<typename ErrT>
     struct bad_expected_access;
     template<>
@@ -23,6 +24,11 @@ namespace dp{
         const ErrT& error() const {return stored_error;}
         ErrT& error(){return stored_error;}
     };
+#else
+    struct bad_expected_access : System::Sysutils::Exception {
+        bad_expected_access() : System::Sysutils::Exception(L"Bad expected access") {}
+    };
+#endif
 
     //Unexpected. For construction and holding of an unexpected value
     template<typename ErrT>
