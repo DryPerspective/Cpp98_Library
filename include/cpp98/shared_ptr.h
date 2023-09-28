@@ -88,7 +88,7 @@ namespace dp {
 
 		template<typename DelT>
 		DelT* get_deleter() const {
-			return static_cast<DelT*>(m_control->get_deleter(typeid(DelT)));
+			return static_cast<DelT*>(Base::m_control->get_deleter(typeid(DelT)));
 		}
 
 	public:
@@ -127,9 +127,9 @@ namespace dp {
 		shared_ptr(const dp::weak_ptr<U>& inPtr) {
 			dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
 			if (inPtr.expired()) throw dp::bad_weak_ptr();
-			m_ptr = inPtr.m_ptr;
-			m_control = inPtr.m_control;
-			if (m_control) m_control->inc_shared();
+			Base::m_ptr = inPtr.m_ptr;
+			Base::m_control = inPtr.m_control;
+			if (Base::m_control) Base::m_control->inc_shared();
 		}
 
 #ifndef DP_CPP17_OR_HIGHER
@@ -157,7 +157,7 @@ namespace dp {
 		
 
 		element_type* get() const {
-			return m_ptr;
+			return Base::m_ptr;
 		}
 
 		//Accessors, filtering for array-ness
@@ -177,12 +177,12 @@ namespace dp {
 		
 		template<typename U>
 		bool owner_before(const shared_ptr<U>& inPtr) {
-			return m_control < inPtr.m_control;
+			return Base::m_control < inPtr.m_control;
 		}
 
 		template<typename U>
 		bool owner_before(const dp::weak_ptr<U>& inPtr) {
-			return m_control < inPtr.m_control;
+			return Base::m_control < inPtr.m_control;
 		}
 	};
 

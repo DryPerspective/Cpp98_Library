@@ -35,6 +35,7 @@
 #include "cpp98/scoped_ptr.h"
 #include "cpp98/shared_ptr.h"
 #include "cpp98/static_assert.h"
+#include "cpp98/string.h"
 #include "cpp98/string_view.h"
 #include "cpp98/type_traits.h"
 #include "cpp98/typeindex.h"

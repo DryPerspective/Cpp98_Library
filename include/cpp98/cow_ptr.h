@@ -39,6 +39,7 @@ namespace dp {
 		typedef typename dp::detail::shared_control_block_base BlockT;
 		typedef typename dp::remove_extent<StoredT>::type stored_type;
 
+
 		typedef typename dp::detail::shared_ownership_base<StoredT> Base;
 
 		template<typename U>
@@ -46,11 +47,11 @@ namespace dp {
 
 		void make_copy() {
 			//If we're not the only pointer using the resource
-			if (m_control && !this->unique()) {
-				BlockT* newBlock = m_control->clone();
-				m_control->dec_shared();
-				m_control = newBlock;
-				m_ptr = static_cast<stored_type*>(m_control->get());
+			if (Base::m_control && !this->unique()) {
+				BlockT* newBlock = Base::m_control->clone();
+				Base::m_control->dec_shared();
+				Base::m_control = newBlock;
+				Base::m_ptr = static_cast<stored_type*>(Base::m_control->get());
 			}
 		}
 
@@ -85,7 +86,7 @@ namespace dp {
 #endif
 
 		template<typename U>
-		cow_ptr(const dp::cow_ptr<U>& inPtr) : Base(in) {}
+		cow_ptr(const dp::cow_ptr<U>& inPtr) : Base(inPtr) {}
 
 
 		using Base::operator=;
@@ -101,11 +102,11 @@ namespace dp {
 		}
 
 		const StoredT* get() const {
-			return m_ptr;
+			return Base::m_ptr;
 		}
 		StoredT* get() {
 			make_copy();
-			return m_ptr;
+			return Base::m_ptr;
 		}
 
 		const StoredT& operator*() const {
@@ -128,11 +129,11 @@ namespace dp {
 
 		const element_type& operator[](std::size_t index) const {
 			dp::static_assert_98<dp::is_array<StoredT>::value>();
-			return m_ptr[index];
+			return Base::m_ptr[index];
 		}
 		element_type& operator[](std::size_t index) {
 			dp::static_assert_98<dp::is_array<StoredT>::value>();
-			return m_ptr[index];
+			return Base::m_ptr[index];
 		}
 
 		
