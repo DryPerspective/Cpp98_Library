@@ -294,20 +294,18 @@ namespace dp {
 	/*
 	*  HELPER CLASSES AND FUNCTIONS
 	*/
-
-	struct bad_weak_ptr : std::exception 
-#ifdef DP_BORLAND_EXCEPTIONS
-		, System::Sysutils::Exception{
-		bad_weak_ptr() : System::Sysutils::Exception(L"Bad weak ptr") {}
-#else
-		{
-#endif
+#ifndef DP_BORLAND_EXCEPTIONS
+	struct bad_weak_ptr : std::exception {
 		virtual const char* what() const throw() {
 			return "Bad weak ptr";
 		}
 
 	};
-
+#else
+	struct bad_weak_ptr : System::Sysutils::Exception {
+		bad_weak_ptr() : System::Sysutils::Exception(L"Bad weak ptr") {}
+	};
+#endif
 
 	/*
 	*  Ordinarily I don't bother with functions which require variadic templates, as it's only possible to recreate a finite amount of the possible sets,
