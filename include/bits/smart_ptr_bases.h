@@ -85,7 +85,8 @@ namespace dp {
 		//Shared base for all control block types.
 		class shared_control_block_base {
 		protected:
-			shared_control_block_base(const shared_control_block_base&);
+
+			shared_control_block_base(const shared_control_block_base& other);
 			shared_control_block_base& operator=(const shared_control_block_base&);
 
 		
@@ -231,7 +232,7 @@ namespace dp {
 			}
 			void destroy_block() {
 				typename AllocT::rebind<shared_block_with_allocator>::other dealloc;
-#if !defined(DP_CPP20_OR_HIGHER) && !defined(DP_NO_ALLOC_CONSTRUCT)
+#if !defined(DP_CPP20_OR_HIGHER)
 				dealloc.destroy(this);
 #else
 				this->~shared_block_with_allocator();
@@ -241,6 +242,12 @@ namespace dp {
 
 		public:
 			explicit shared_block_with_allocator(InputT* inPtr, DelT inDel, const AllocT& inAlloc) : shared_control_block_base(), m_ptr(inPtr), m_deleter(inDel), m_alloc(inAlloc) {}
+
+			//Allocator::contruct is non-variadic prior to C++11, which makes it largely useless for constructing things.
+			//but we offer allocator support so we provide support for that.
+			//We can't call alloc.construct(block_ptr, ptr, deleter, alloc)
+			//As such, we need to be able to call alloc.construct(block_ptr, control_block(ptr, deleter, alloc)) which is a copy-construction operation
+			shared_block_with_allocator(const shared_block_with_allocator& in) : shared_control_block_base(), m_ptr(in.m_ptr), m_deleter(in.m_deleter), m_alloc(in.m_alloc) {}
 
 			void* get_deleter(const std::type_info& inT) {
 				if (inT == typeid(DelT)) return static_cast<void*>(&m_deleter);
@@ -271,7 +278,7 @@ namespace dp {
 				}
 				
 				try {
-#if !defined(DP_CPP20_OR_HIGHER) && !defined(DP_NO_ALLOC_CONSTRUCT)
+#if !defined(DP_CPP20_OR_HIGHER)
 					all.construct(newBlock, shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), AllocT(m_alloc)));
 #else
 					::new (newBlock) shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), AllocT(m_alloc));

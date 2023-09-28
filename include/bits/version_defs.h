@@ -49,13 +49,7 @@
 #endif
 
 
-/*
-* A mix of compilers have serious trouble with allocator::construct in the case of shared_ptr for an abstract base class. Just putting this here so I can test other things while
-* thinking of a more elegant solution to that problem. Temporary measure.
-*/
-#ifndef DP_USE_ALLOCATOR_CONSTRUCTION
-#define DP_NO_ALLOC_CONSTRUCT
-#endif
+
 
 
 

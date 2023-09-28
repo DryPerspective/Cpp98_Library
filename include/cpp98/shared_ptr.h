@@ -124,8 +124,10 @@ namespace dp {
 			Rebind rb;
 			m_control = rb.allocate(sizeof(dp::detail::shared_block_with_allocator<U, Deleter, Alloc>));
 			try {
-#if !defined(DP_CPP20_OR_HIGHER) && !defined(DP_NO_ALLOC_CONSTRUCT)
-				rb.construct(m_control, dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc));
+#if !defined(DP_CPP20_OR_HIGHER)
+				dp::detail::shared_block_with_allocator<U, Deleter, Alloc>* block = NULL;
+				rb.construct(block, dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc));
+				m_control = block;
 #else
 				::new (m_control) dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc);
 #endif
