@@ -11,6 +11,7 @@
 #include <cerrno>
 #include <stdexcept>
 #include <cstdio>
+#include <cwchar>
 #include "cpp98/type_traits.h"
 #include "cpp98/iterator.h"
 
@@ -230,11 +231,19 @@ namespace dp {
 	*	DR Functions
 	*/
 	template<typename CharT, typename Traits, typename Alloc>
-	CharT& front(const std::basic_string<CharT, Traits, Alloc>& str){
+	CharT& front(std::basic_string<CharT, Traits, Alloc>& str){
 		return str[0];
 	}
 	template<typename CharT, typename Traits, typename Alloc>
-	CharT& back(const std::basic_string<CharT, Traits, Alloc>& str){
+	CharT& back(std::basic_string<CharT, Traits, Alloc>& str){
+		return str[str.size() - 1];
+	}
+	template<typename CharT, typename Traits, typename Alloc>
+	const CharT& front(const std::basic_string<CharT, Traits, Alloc>& str){
+		return str[0];
+	}
+	template<typename CharT, typename Traits, typename Alloc>
+	const CharT& back(const std::basic_string<CharT, Traits, Alloc>& str){
 		return str[str.size() - 1];
 	}
 	template<typename CharT, typename Traits, typename Alloc>
@@ -277,7 +286,18 @@ namespace dp {
 		return std::string(dp::begin(buf), std::find(dp::begin(buf), dp::end(buf), 0));
 	}
 	template<typename T>
-	typename dp::enable_if<dp::is_floating_point<T>::value, std::string>::type to_string(T in) {
+	typename dp::enable_if<dp::is_same<T, float>::value || dp::is_same<T, double>::value, std::string>::type to_string(long double in) {
+		char buf[21];
+		std::sprintf(buf, "%Lf", in);
+		std::string str(dp::begin(buf), std::find(dp::begin(buf), dp::end(buf), 0));
+		if (!str.empty() && dp::back(str) == '0') {
+			std::size_t lastChar = str.find_last_not_of('0');
+			str = str.substr(0, lastChar + 1);
+		}
+		return str;
+	}
+
+	std::string to_string(long double in) {
 		char buf[21];
 		std::sprintf(buf, "%Lf", in);
 		std::string str(dp::begin(buf), std::find(dp::begin(buf), dp::end(buf), 0));
@@ -289,21 +309,31 @@ namespace dp {
 	}
 
 	template<typename T>
-	typename dp::enable_if<dp::is_signed<T>::value&& dp::is_integral<T>::value, std::wstring>::type to_wstring(T in) {
+	typename dp::enable_if<dp::is_signed<T>::value && dp::is_integral<T>::value, std::wstring>::type to_wstring(T in) {
 		wchar_t buf[21];	//Bit enough to hold the full range
-		std::sprintf(buf, "%ld", in);
+		std::swprintf(buf, 20, L"%ld", in);
 		return std::wstring(dp::begin(buf), std::find(dp::begin(buf), dp::end(buf), 0));
 	}
 	template<typename T>
-	typename dp::enable_if<dp::is_unsigned<T>::value&& dp::is_integral<T>::value, std::wstring>::type to_wstring(T in) {
+	typename dp::enable_if<dp::is_unsigned<T>::value && dp::is_integral<T>::value, std::wstring>::type to_wstring(T in) {
 		wchar_t buf[21];
-		std::sprintf(buf, "%lu", in);
+		std::swprintf(buf, 20, L"%lu", in);
 		return std::wstring(dp::begin(buf), std::find(dp::begin(buf), dp::end(buf), 0));
 	}
 	template<typename T>
-	typename dp::enable_if<dp::is_floating_point<T>::value, std::wstring>::type to_wstring(T in) {
+	typename dp::enable_if<dp::is_same<T, float>::value || dp::is_same<T, double>::value, std::string>::type to_wstring(T in){
 		wchar_t buf[21];
-		std::sprintf(buf, "%Lf", in);
+		std::swprintf(buf, 20, L"%f", in);
+		std::wstring str(dp::begin(buf), std::find(dp::begin(buf), dp::end(buf), 0));
+		if (!str.empty() && dp::back(str) == '0') {
+			std::size_t lastChar = str.find_last_not_of('0');
+			str = str.substr(0, lastChar + 1);
+		}
+		return str;		
+	}
+	std::wstring to_wstring(long double in) {
+		wchar_t buf[21];
+		std::swprintf(buf, 20, L"%Lf", in);
 		std::wstring str(dp::begin(buf), std::find(dp::begin(buf), dp::end(buf), 0));
 		if (!str.empty() && dp::back(str) == '0') {
 			std::size_t lastChar = str.find_last_not_of('0');
