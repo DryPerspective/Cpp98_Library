@@ -31,7 +31,7 @@ struct nullopt_t{};
 //Can't to the old extern instance trick - the C++Builder linker says no
 static const nullopt_t nullopt = {};
 
-
+#ifndef DP_BORLAND_EXCEPTIONS
 //Bad optional access exception
 struct bad_optional_access : std::exception {
 	bad_optional_access() {}
@@ -40,6 +40,11 @@ struct bad_optional_access : std::exception {
 		return "Bad optional access";
 	}
 };
+#else
+struct bad_optional_access : System::Sysutils::Exception {
+	bad_optional_access() : System::Sysutils::Exception(L"Bad optional access") {}
+}
+#endif
 
 /*
 *  dp::optional and dp::expected both use an almost identical mechanism to store (or not store) their values. As such, we DRY up our code
