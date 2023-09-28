@@ -7,9 +7,10 @@
 #include "bits/type_traits_ns.h"
 
 namespace dp{
-#ifndef DP_BORLAND_EXCEPTIONS
+
     template<typename ErrT>
     struct bad_expected_access;
+#ifndef DP_BORLAND_EXCEPTIONS
     template<>
     struct bad_expected_access<void> : std::exception{
         const char* what() const throw(){
@@ -25,8 +26,18 @@ namespace dp{
         ErrT& error(){return stored_error;}
     };
 #else
-    struct bad_expected_access : System::Sysutils::Exception {
+    template<>
+    struct bad_expected_access<void> : System::Sysutils::Exception {
         bad_expected_access() : System::Sysutils::Exception(L"Bad expected access") {}
+    };
+    template<typename ErrT>
+    struct bad_expected_access : bad_expected_access<void> {
+        ErrT stored_error;
+
+        bad_expected_access(const ErrT& E) : stored_error(E) {}
+        const ErrT& error() const { return stored_error; }
+        ErrT& error() { return stored_error; }
+
     };
 #endif
 
