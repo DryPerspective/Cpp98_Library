@@ -43,7 +43,7 @@ struct bad_optional_access : std::exception {
 #else
 struct bad_optional_access : System::Sysutils::Exception {
 	bad_optional_access() : System::Sysutils::Exception(L"Bad optional access") {}
-}
+};
 #endif
 
 /*
@@ -79,14 +79,14 @@ public:
 	#else
 	template<typename U>
 	optional& operator=(const U& in) {
-		if (m_HasValue) {
+		if (Base::m_HasValue) {
 			using std::swap;
 			T copy(in);
-			swap(storedObject(), copy);
+			swap(this->storedObject(), copy);
 		}
 		else {
-			new (m_Storage) T(in);
-			m_HasValue = true;
+			new (Base::m_Storage) T(in);
+			Base::m_HasValue = true;
 		}
 		return *this;
 	}

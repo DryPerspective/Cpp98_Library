@@ -304,7 +304,7 @@ namespace dp {
 #else
 	struct bad_weak_ptr : System::Sysutils::Exception {
 		bad_weak_ptr() : System::Sysutils::Exception(L"Bad weak ptr") {}
-	}
+	};
 #endif
 
 	/*

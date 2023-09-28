@@ -27,7 +27,7 @@ namespace dp{
 #else
     struct bad_expected_access : System::Sysutils::Exception {
         bad_expected_access() : System::Sysutils::Exception(L"Bad expected access") {}
-    }
+    };
 #endif
 
     //Unexpected. For construction and holding of an unexpected value
