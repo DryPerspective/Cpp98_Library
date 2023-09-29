@@ -33,7 +33,7 @@ namespace detail {
         //As optionals and expecteds have different behaviour for default construction
         //We abstract the difference here
         explicit opt_exp_base(bool in) : m_HasValue(in){
-            if(m_HasValue) new (m_Storage) T;
+            if(m_HasValue) new (m_Storage) T();
         }
 
 
