@@ -3,7 +3,7 @@
 
 #include <exception>
 
-#include "bits/optional_expected_base.h"
+#include "bits/unbound_storage.h"
 #include "bits/type_traits_ns.h"
 
 
@@ -43,6 +43,7 @@ namespace dp{
     };
 #endif
 
+
     //Unexpected. For construction and holding of an unexpected value
     template<typename ErrT>
     class unexpected{
@@ -72,147 +73,161 @@ namespace dp{
         lhs.swap(rhs);
     }
 
-    //And our expected object
-    //Inheritance from the shared base, using storage allocated for whichever is larger
-    //of the value type or the error type.
     template<typename ValT, typename ErrT>
-    class expected : public dp::detail::opt_exp_base<ValT, dp::type_sizes<ValT,ErrT>::larger_size>{
-        typedef typename dp::detail::opt_exp_base<ValT, dp::type_sizes<ValT,ErrT>::larger_size> Base;
-
-        inline ErrT& storedError(){
-            return *reinterpret_cast<ErrT*>(Base::m_Storage);
-        }
-
-        inline const ErrT& storedError() const{
-            return *reinterpret_cast<const ErrT*>(Base::m_Storage);
-        }
-
-        //Private because unlike optional, expected must always hold a value.
-        void reset() {
-            if (this->has_value()) this->storedObject().~ValT();
-            else storedError().~ErrT();
-            this->m_HasValue = false;
-        }
-
-
-
+    class expected {
     public:
+
         typedef ValT                    value_type;
         typedef ErrT                    error_type;
         typedef dp::unexpected<ErrT>    unexpected_type;
         //No using alias so we make do
         template<typename U>
-        struct rebind{
+        struct rebind {
             typedef typename dp::expected<U, error_type> type;
         };
 
-        expected() : Base(true) {}
+        expected() : m_storage(value_type()), m_holds_value_type(true) {}
 
-        template<typename U>
-        expected(const U& in) : Base(in) {}
-
-        template<typename U, typename G>
-        expected(const dp::expected<U,G>& other) : Base::m_HasValue(other.has_value()){
-            if(this->has_value()){
-                new(Base::m_Storage) ValT(*other);
-            }
-            else{
-                new(Base::m_Storage) ErrT(other.error());
-            }
-        }
-        template<typename U>
-        expected(const dp::unexpected<U>& other) : Base(false){
-            new(Base::m_Storage) ErrT(other.error());
-        }
-
-        ~expected(){
-            this->reset();
-        }
-
-        template<typename U>
-        expected& operator=(const U& in){
-            //If we have a value already we can use the existing assignment
-            //Otherwise we need to worry about destructing our error type first
-            //No strong exception guarantee on this one.
-            if(!this->has_value()) this->storedError().~ErrT();
-            new (Base::m_Storage) ValT(in);
-            this->m_HasValue = true;
-            return *this;
+        expected(const expected& other) : m_holds_value_type(other.has_value()) {
+            if (has_value()) m_storage.template construct<value_type>(*other);
+            else m_storage.template construct<error_type>(other.error());
         }
 
         template<typename U, typename G>
-        expected& operator=(const dp::expected<U,G>& in){
-            if(this->has_value() && in.has_value()){
-                this->storedObject() = in.storedObject();
-            }
-            else if(this->has_value()){
-                this->storedObject().~ValT();
-                new (Base::m_Storage) ErrT(in.error());
-                this->m_HasValue = false;
-            }
-            else if(in.has_value()){
-                this->storedError().~ErrT();
-                new (Base::m_Storage) ValT(in.value());
-                this->m_HasValue = true;                
-            }
-            else{
-                this->storedError() = in.error();
-            }
+        explicit expected(const dp::expected<U, G>& other) : m_holds_value_type(other.has_value()) {
+            if (has_value()) m_storage.template construct<value_type>(*other);
+            else m_storage.template construct<error_type>(other.error());
+        }
+
+        template<typename U>
+        expected(const U& in) : m_holds_value_type(true) {
+            m_storage.template construct<value_type>(in);
+        }
+
+        template<typename U>
+        expected(const dp::unexpected<U>& other) : m_holds_value_type(false) {
+            m_storage.template construct<error_type>(other.error());
+        }
+
+        ~expected() {
+            if (has_value()) m_storage.template destroy<value_type>();
+            else m_storage.template destroy<error_type>();
+        }
+
+        expected& operator=(const expected& other) {
+            expected copy(other);
+            this->swap(copy);
+            return *this;
+        }
+
+        template<typename U, typename G>
+        expected& operator=(const expected& other) {
+            expected copy(other);
+            this->swap(copy);
             return *this;
         }
 
         template<typename U>
-        expected& operator=(const dp::unexpected<U>& in){
-            if(this->has_value()){
-                this->storedObject().~ValT();
-                new (Base::m_Storage) ErrT(in.error());
-                this->m_HasValue = false;
-            }
-            else{
-                this->storedError() = in.error();
-            }
+        expected& operator=(const U& in) {
+            expected copy(in);
+            this->swap(copy);
             return *this;
         }
 
-        //Not shared because of differing exceptions thrown.
-	    ValT& value() {
-		    if (!this->has_value()) throw dp::bad_expected_access<ErrT>(this->error());
-		    return this->storedObject();
-	    }
-	    const ValT& value() const {
-		    if (!this->has_value()) throw dp::bad_expected_access<ErrT>(this->error());
-		    return this->storedObject();
-	    }
-
-        ErrT& error(){
-            return this->storedError();
-        }
-
-        const ErrT& error() const{
-            return this->storedError();
-        }
-
-        void swap(expected<ValT,ErrT>& other){
+        void swap(expected& other) {
             using std::swap;
-            if(this->has_value() && other.has_value()){
-                swap(this->storedObject(), other.storedObject());
+            if (this->has_value() && other.has_value()) {
+                m_storage.template swap<value_type>(other.m_storage);
             }
-            else if(this->has_value()){
-                ValT temp(this->storedObject());
-                *this = dp::unexpected<ErrT>(other.error());
-                other = temp;
+            else if (other.has_value()) {
+                //Exception safety! My old nemesis.
+                //This is the type we use to store data. Guaranteed to be big enough to fit
+                typedef typename dp::unbound_storage<dp::type_sizes<value_type, error_type>::larger_size> storage_type;
+
+                storage_type temp_val(*other);
+                storage_type temp_err(this->error());
+
+                //Assume a non-throwing destructor.
+                this->m_storage.template destroy<error_type>();
+                other.m_storage.template destroy<value_type>();
+
+                //And nothrow swap them in.
+                this->m_storage.template swap<value_type>(temp_val);
+                other.m_storage.template swap<error_type>(temp_err);
+
+                swap(m_holds_value_type, other.m_holds_value_type);
             }
-            else if(other.has_value()){
+            else if (this->has_value()) {
                 other.swap(*this);
             }
-            else{
-                swap(this->storedError(), other.storedError());
+            else {
+                m_storage.template swap<error_type>(other.m_storage);
             }
 
+
+        
+        }
+
+        value_type& operator*() {
+            return get();
+        }
+        const value_type& operator*() const {
+            return get();
+        }
+
+        value_type* operator->() {
+            return &get();
+        }
+        const value_type* operator->() const {
+            return &get();
+        }
+
+        value_type& value() {
+            if (!has_value()) throw dp::bad_expected_access<error_type>(this->error());
+            return get();
+        }
+        const value_type& value() const {
+            if (!has_value()) throw dp::bad_expected_access<error_type>(this->error());
+            return get();
+        }
+
+        template<typename U>
+        value_type value_or(const U& in) const {
+            if (!has_value()) return in;
+            return get();
+        }
+
+        error_type& error() {
+            return m_storage.template get<error_type>();
+        }
+        const error_type& error() const {
+            return m_storage.template get<error_type>();
+        }
+
+        bool has_value() const {
+            return m_holds_value_type;
+        }
+
+        operator bool() const {
+            return has_value();
         }
 
 
+
+    private:
+
+        dp::unbound_storage<dp::type_sizes<value_type, error_type>::larger_size> m_storage;
+        bool m_holds_value_type;
+
+        inline value_type& get() {
+            return m_storage.template get<value_type>();
+        }
+        inline const value_type& get() const {
+            return m_storage.template get<value_type>();
+        }
     };
+
+
 
     //Undefined to prevent use
     template<typename T, typename ErrT>

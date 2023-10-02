@@ -7,7 +7,7 @@
 
 #include "bits/version_defs.h"
 
-#include "bits/optional_expected_base.h"
+#include "bits/unbound_storage.h"
 
 /*
 *	An analogue of std::optional which should work as far back as C++98.
@@ -46,78 +46,113 @@ struct bad_optional_access : System::Sysutils::Exception {
 };
 #endif
 
-/*
-*  dp::optional and dp::expected both use an almost identical mechanism to store (or not store) their values. As such, we DRY up our code
-*  by having them share a base.
-*/
-template<typename T>
-class optional : public dp::detail::opt_exp_base<T, sizeof(T)> {
-	typedef typename dp::detail::opt_exp_base<T, sizeof(T)> Base;
 
-public:
+	template<typename T>
+	class optional {
 
-	//Public facing typedef. Less ugly than public-private-public switcheroo to use the other one
-	typedef T value_type;
+	public:
+		//Required typedef and two-phase lookup fixer
+		typedef T value_type;
 
-	optional() : Base(false) {}
-	optional(nullopt_t) : Base(false) {}
 
-	optional(const optional& other) : Base(other) {}
+		optional() : m_storage() {}
+		optional(dp::nullopt_t) : m_storage() {}
 
-	template<typename U>
-	optional(const optional<U>& other) : Base(other) {}
-
-	template<typename U>
-	optional(const U& in) : Base(in) {}
-
-	~optional() {}
-
-	#ifndef DP_BORLAND
-	//No clude what the error here is, except that that Borland seems to think that Base isn't a base of this class.
-	//Error message is just "detail::opt_exp_base<T, sizeof(T)> is not a base of optional<T>"
-	using Base::operator=;
-	#else
-	template<typename U>
-	optional& operator=(const U& in) {
-		if (Base::m_HasValue) {
-			using std::swap;
-			T copy(in);
-			swap(this->storedObject(), copy);
+		optional(const optional& other) : m_storage() {
+			if (other.has_value()) m_storage.template construct<value_type>(*other);
 		}
-		else {
-			new (Base::m_Storage) T(in);
-			Base::m_HasValue = true;
+
+		template<typename U>
+		optional(const optional<U>& other) : m_storage() {
+			if (other.has_value()) m_storage.template construct<value_type>(*other);
 		}
-		return *this;
-	}
 
-	template<typename U>
-	optional& operator=(const optional<U>& in) {
-		optional<T> copy(in);
-		this->swap(copy);
-		return *this;
-	}
-	#endif
+		template<typename U>
+		optional(const U& value) : m_storage() {
+			m_storage.template construct<value_type>(value);
+		}
 
-	optional& operator=(dp::nullopt_t){
-		this->reset();
-		return *this;
-	}
+		~optional() {
+			m_storage.template reset<value_type>();
+		}
 
-	//Not shared because of differing exceptions thrown.
-	T& value() {
-		if (!this->has_value()) throw dp::bad_optional_access();
-		return this->storedObject();
-	}
+		optional& operator=(dp::nullopt_t) {
+			m_storage.template reset<value_type>();
+			return *this;
+		}
+		optional& operator=(const optional& other) {
+			optional copy(other);
+			this->swap(copy);
+			return *this;
+		}
+		template<typename U>
+		optional& operator=(const U& in) {
+			m_storage.template assign<value_type>(in);
+			return *this;
+		}
+		template<typename U>
+		optional& operator=(const dp::optional<U>& in) {
+			optional copy(in);
+			this->swap(copy);
+			return *this;
+		}
 
-	const T& value() const {
-		if (!this->has_value()) throw dp::bad_optional_access();
-		return this->storedObject();
-	}
+		void swap(optional& other) {
+			m_storage.template swap<value_type>(other.m_storage);
+		}
 
+		void reset() {
+			m_storage.template reset<T>();
+		}
 
-};
+		value_type& operator*() {
+			return get();
+		}
+		const value_type& operator*() const {
+			return get();
+		}
 
+		value_type* operator->() {
+			return &get();
+		}
+		const value_type* operator->() const {
+			return &get();
+		}
+
+		bool has_value() const {
+			return m_storage.template has_value();
+		}
+
+		operator bool() const {
+			return has_value();
+		}
+
+		value_type& value() {
+			if (!has_value()) throw dp::bad_optional_access();
+			return get();
+		}
+		const value_type& value() const {
+			if (!has_value()) throw dp::bad_optional_access();
+			return get();
+		}
+
+		template<typename U>
+		value_type value_or(const U& in) const {
+			if (!has_value()) return in;
+			return get();
+		}
+
+	private:
+
+		typename dp::unbound_storage<sizeof(value_type)> m_storage;
+
+		inline value_type& get() {
+			return m_storage.template get<value_type>();
+		}
+		inline const value_type& get() const {
+			return m_storage.template get<value_type>();
+		}
+	};
 
 
 
