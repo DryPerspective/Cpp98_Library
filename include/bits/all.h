@@ -4,13 +4,14 @@
 /*
 *	DEBUG HEADER FOR TESTING
 *	Yes, this includes the entire library. It's the easiest way to test that on first pass, things will behave
-*	This should be be included in your own code.
+*	This should not be included in your own code.
 *	If you include this for no reason except laziness, I reserve the right to judge your programming skills
 */
 
 #include "bits/version_defs.h"
 
 #include "bits/fat_pointer.h"
+#include "bits/ignore.h"
 #include "bits/misc_memory_functions.h"
 #include "bits/smart_ptr_bases.h"
 #include "bits/static_assert_no_macro.h"

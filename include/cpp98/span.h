@@ -8,7 +8,16 @@
 #include "bits/misc_memory_functions.h"
 #include "bits/fat_pointer.h"
 #include "bits/type_traits_ns.h"
+
+#include "bits/version_defs.h"
+
+//We need to play this silly game because Borland can't handle default args correctly.
+#ifdef DP_BORLAND
 #include "bits/ignore.h"
+#define DP_ENABLE_TYPE dp::ignore
+#else
+#define DP_ENABLE_TYPE bool
+#endif
 
 
 
@@ -162,38 +171,38 @@ namespace dp {
 		}
 
 		template<std::size_t N>
-		span(typename dp::type_identity<element_type>::type(&arr)[N], typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N, dp::ignore>::type = true) {
+		span(typename dp::type_identity<element_type>::type(&arr)[N], typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N, DP_ENABLE_TYPE>::type = true) {
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 
 #ifndef DP_BORLAND
 		template<typename U, std::size_t N>
-		span(dp::array<U,N>& arr, typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N && dp::is_qualification_conversion<U, element_type>::value, dp::ignore>::type = true){
+		span(dp::array<U,N>& arr, typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N && dp::is_qualification_conversion<U, element_type>::value, DP_ENABLE_TYPE>::type = true){
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 
 		template<typename U, std::size_t N>
-		span(const dp::array<U, N>& arr, typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N && dp::is_qualification_conversion<U, element_type>::value, dp::ignore>::type = true) {
+		span(const dp::array<U, N>& arr, typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N && dp::is_qualification_conversion<U, element_type>::value, DP_ENABLE_TYPE>::type = true) {
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 #else
 		template<typename U, std::size_t N>
-		span(dp::array<U,N>& arr, typename dp::enable_if<dp::detail::span_array_check<element_type, Extent, U, N>::value, dp::ignore>::type = true){
+		span(dp::array<U,N>& arr, typename dp::enable_if<dp::detail::span_array_check<element_type, Extent, U, N>::value, DP_ENABLE_TYPE>::type = true){
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 		template<typename U, std::size_t N>
-		span(const dp::array<U, N>& arr, typename dp::enable_if<dp::detail::span_array_check<element_type, Extent, U, N>::value, dp::ignore>::type = true) {
+		span(const dp::array<U, N>& arr, typename dp::enable_if<dp::detail::span_array_check<element_type, Extent, U, N>::value, DP_ENABLE_TYPE>::type = true) {
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 #endif
 
 		template<typename Range>
-		span(const Range& r, typename dp::enable_if<detail::is_constructible_span_range<Range>::value, dp::ignore>::type = true) {
+		span(const Range& r, typename dp::enable_if<detail::is_constructible_span_range<Range>::value, DP_ENABLE_TYPE>::type = true) {
 			assign_contents(dp::data(r), dp::size(r));
 		}
 
 		template<typename U, std::size_t Ext>
-		span(const span<U, Ext>& in, typename dp::enable_if< Extent == dp::dynamic_extent || Ext == dp::dynamic_extent || Ext == Extent, dp::ignore>::type = true) {
+		span(const span<U, Ext>& in, typename dp::enable_if< Extent == dp::dynamic_extent || Ext == dp::dynamic_extent || Ext == Extent, DP_ENABLE_TYPE>::type = true) {
 			assign_contents(in.data(), in.size());
 		}
 
@@ -280,6 +289,10 @@ namespace dp {
 			return size() * sizeof(element_type);
 		}
 
+		bool empty() const {
+			return size() == 0;
+		}
+
 		template<std::size_t Count>
 		span<element_type, Count> first() const {
 			dp::static_assert_98<Extent >= Count>();
@@ -360,6 +373,7 @@ namespace dp {
 }
 
 
+#undef DP_ENABLE_TYPE
 
 
 #endif
