@@ -104,6 +104,8 @@ namespace dp {
 #endif
 		};
 #ifdef DP_BORLAND
+		//Yes we need this for Borland because Borland can't process too many conditions in one line, unless it's a trait
+		//Yes we need to arduously provide the four template params separately. Go figure.
 		template<typename SpanT, std::size_t SpanExt, typename ArrT, std::size_t ArrExt>
 		struct span_array_check {
 			static const bool value = (SpanExt == dp::dynamic_extent || SpanExt == ArrExt) &&
