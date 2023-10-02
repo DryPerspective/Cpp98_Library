@@ -120,7 +120,7 @@ struct bad_optional_access : System::Sysutils::Exception {
 		}
 
 		bool has_value() const {
-			return m_storage.template has_value();
+			return m_storage.has_value();
 		}
 
 		operator bool() const {
