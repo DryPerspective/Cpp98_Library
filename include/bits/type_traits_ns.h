@@ -21,6 +21,15 @@ namespace dp {
         static const std::size_t smaller_size = sizeof(smaller_type);
     };
 
+    template<typename T, typename U>
+    struct is_qualification_conversion {
+        static const bool value =
+            dp::is_same<T, U>::value ||                                                                     //Same qualification
+            dp::is_same<T, typename dp::remove_cv<U>::type>::value ||                                       //Unqualified to c/v/cv
+            (dp::is_const<T>::value && dp::is_same<T, typename dp::remove_volatile<U>::type>::value) ||     //Const to cv
+                (dp::is_volatile<T>::value && dp::is_same<T, typename dp::remove_const<U>::type>::value);   //Volatile to cv
+    };
+
     namespace detail{
 #ifndef DP_BORLAND
         //is_convertible relies on a SFINAE trick which borland never implemented.

@@ -15,9 +15,10 @@ namespace dp {
 		std::size_t size;
 
 		operator T* () { return begin; }
-		operator const T* () const { return begin; }
+		operator const T* () const { return begin; }		
 
 		//Who doesn't love a lack of aggregate initialization and extended init lists
+		fat_pointer() : begin(NULL), size(0) {}
 		fat_pointer(T* b, std::size_t s) : begin(b), size(s) {}
 	};
 

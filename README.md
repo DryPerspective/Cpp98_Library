@@ -26,6 +26,7 @@ A writeup of all the features can be found on [the project's wiki](https://githu
 * ratio
 * scoped_ptr
 * shared_ptr
+* span
 * static_assert 
 * string
 * string_view
