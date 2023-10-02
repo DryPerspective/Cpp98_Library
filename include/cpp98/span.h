@@ -5,6 +5,7 @@
 #include <iterator>
 
 #include "cpp98/type_traits.h"
+#include "cpp98/iterator.h"
 #include "bits/misc_memory_functions.h"
 #include "bits/fat_pointer.h"
 #include "bits/type_traits_ns.h"
@@ -65,8 +66,8 @@ namespace dp {
 		struct assign_storage_impl {
 			dp::static_assert_98<is_special_of_span<T>::value> assertion;
 
-			void operator()(T& sp, typename T::value_type* inPtr, std::size_t inSize) {
-				sp.m_data.begin = inPtr;
+			void operator()(T& sp, const typename T::value_type* inPtr, std::size_t inSize) {
+				sp.m_data.begin = const_cast<typename T::value_type*>(inPtr);
 				sp.m_data.size = inSize;
 			}
 		};
@@ -75,8 +76,8 @@ namespace dp {
 		struct assign_storage_impl<T,false> {
 			dp::static_assert_98<is_special_of_span<T>::value> assertion;
 
-			void operator()(T& sp, typename T::value_type* inPtr, std::size_t) {
-				sp.m_data = inPtr;
+			void operator()(T& sp, const typename T::value_type* inPtr, std::size_t) {
+				sp.m_data = const_cast<typename T::value_type*>(inPtr);
 			}
 		};
 
@@ -210,6 +211,7 @@ namespace dp {
 
 		span& operator=(const span& other) {
 			m_data = other.m_data;
+			return *this;
 		}
 
 		iterator begin() const {
@@ -339,7 +341,7 @@ namespace dp {
 		template<typename, bool>
 		friend struct detail::span_size_impl;
 
-		void assign_contents(value_type* inPtr, std::size_t inSize) {
+		void assign_contents(const value_type* inPtr, std::size_t inSize) {
 			detail::assign_storage<span>()(*this, inPtr, inSize);
 		}
 
