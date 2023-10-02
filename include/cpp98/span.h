@@ -7,6 +7,8 @@
 #include "cpp98/type_traits.h"
 #include "bits/misc_memory_functions.h"
 #include "bits/fat_pointer.h"
+#include "bits/type_traits_ns.h"
+#include "bits/ignore.h"
 
 
 
@@ -45,7 +47,7 @@ namespace dp {
 			static const bool value = !is_special_of_span<R>::value &&
 				!is_special_of_array<R>::value &&
 				!dp::is_array<typename dp::remove_cvref<R>::type>::value;
-						
+
 		};
 
 		//Hacky way around the template limitations we're working with
@@ -100,22 +102,18 @@ namespace dp {
 #else
 			static const bool value = !dp::is_arithmetic<T>::value;
 #endif
-
-
 		};
+#ifdef DP_BORLAND
+		template<typename SpanT, std::size_t SpanExt, typename ArrT, std::size_t ArrExt>
+		struct span_array_check {
+			static const bool value = (SpanExt == dp::dynamic_extent || SpanExt == ArrExt) &&
+								dp::is_qualification_conversion<ArrT, SpanT>::value;
+		};
+#endif
 
-		
+
 	}
 
-
-
-
-
-
-
-
-
-	
 
 
 	template<typename StoredT, std::size_t Extent = dp::dynamic_extent>
@@ -162,27 +160,38 @@ namespace dp {
 		}
 
 		template<std::size_t N>
-		span(typename dp::type_identity<element_type>::type(&arr)[N], typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N, bool>::type = true) {
+		span(typename dp::type_identity<element_type>::type(&arr)[N], typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N, dp::ignore>::type = true) {
+			assign_contents(dp::data(arr), dp::size(arr));
+		}
+
+#ifndef DP_BORLAND
+		template<typename U, std::size_t N>
+		span(dp::array<U,N>& arr, typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N && dp::is_qualification_conversion<U, element_type>::value, dp::ignore>::type = true){
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 
 		template<typename U, std::size_t N>
-		span(dp::array<U,N>& arr, typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N && dp::is_qualification_conversion<U, element_type>::value, bool>::type = true){
+		span(const dp::array<U, N>& arr, typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N && dp::is_qualification_conversion<U, element_type>::value, dp::ignore>::type = true) {
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
-
+#else
 		template<typename U, std::size_t N>
-		span(const dp::array<U, N>& arr, typename dp::enable_if<Extent == dp::dynamic_extent || Extent == N && dp::is_qualification_conversion<U, element_type>::value, bool>::type = true) {
+		span(dp::array<U,N>& arr, typename dp::enable_if<dp::detail::span_array_check<element_type, Extent, U, N>::value, dp::ignore>::type = true){
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
+		template<typename U, std::size_t N>
+		span(const dp::array<U, N>& arr, typename dp::enable_if<dp::detail::span_array_check<element_type, Extent, U, N>::value, dp::ignore>::type = true) {
+			assign_contents(dp::data(arr), dp::size(arr));
+		}
+#endif
 
 		template<typename Range>
-		span(const Range& r, typename dp::enable_if<detail::is_constructible_span_range<Range>::value, bool>::type = true) {
+		span(const Range& r, typename dp::enable_if<detail::is_constructible_span_range<Range>::value, dp::ignore>::type = true) {
 			assign_contents(dp::data(r), dp::size(r));
 		}
 
 		template<typename U, std::size_t Ext>
-		span(const span<U, Ext>& in, typename dp::enable_if< Extent == dp::dynamic_extent || Ext == dp::dynamic_extent || Ext == Extent, bool>::type = true) {
+		span(const span<U, Ext>& in, typename dp::enable_if< Extent == dp::dynamic_extent || Ext == dp::dynamic_extent || Ext == Extent, dp::ignore>::type = true) {
 			assign_contents(in.data(), in.size());
 		}
 
@@ -193,8 +202,16 @@ namespace dp {
 		}
 
 		iterator begin() const {
+		#ifndef DP_BORLAND
 			//Curse you quirky const-correctness. Now I need to use a const_cast
 			return static_cast<iterator>(const_cast<pointer_type&>(m_data));
+		#else
+			//Borland doesn't respect the const_cast and will still error.
+			//So we take the long way round.
+			const_iterator begin(static_cast<const_iterator>(m_data));
+			iterator res = const_cast<iterator&>(begin);
+			return res;
+		#endif
 		}
 
 		const_iterator cbegin() const {
@@ -226,7 +243,13 @@ namespace dp {
 		}
 
 		reference operator[](std::size_t index) const {
+#ifndef DP_BORLAND
 			return const_cast<pointer_type&>(m_data)[index];
+#else
+			const_reference cref = (m_data)[index];
+			reference ref = const_cast<reference>(cref);
+            return ref;
+#endif
 		}
 
 		reference front() {
