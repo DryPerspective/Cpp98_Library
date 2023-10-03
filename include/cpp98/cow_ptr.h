@@ -34,24 +34,25 @@ namespace dp {
 	*   changes are reflected in any pointer that makes them (and any pointer spawned off of that pointer).
 	*/
 	template<typename StoredT>
-	class cow_ptr : public dp::detail::shared_ownership_base<StoredT> {
+	class cow_ptr {
 
 		typedef typename dp::detail::shared_control_block_base BlockT;
 		typedef typename dp::remove_extent<StoredT>::type stored_type;
 
 
-		typedef typename dp::detail::shared_ownership_base<StoredT> Base;
+		stored_type* m_ptr;
+		BlockT* m_control;
 
 		template<typename U>
 		friend class cow_ptr;
 
 		void make_copy() {
 			//If we're not the only pointer using the resource
-			if (Base::m_control && !this->unique()) {
-				BlockT* newBlock = Base::m_control->clone();
-				Base::m_control->dec_shared();
-				Base::m_control = newBlock;
-				Base::m_ptr = static_cast<stored_type*>(Base::m_control->get());
+			if (m_control && !this->unique()) {
+				BlockT* newBlock = m_control->clone();
+				m_control->dec_shared();
+				m_control = newBlock;
+				m_ptr = static_cast<stored_type*>(m_control->get());
 			}
 		}
 
@@ -59,54 +60,129 @@ namespace dp {
 
 		typedef typename dp::remove_extent<StoredT>::type element_type;
 
-		explicit cow_ptr() : Base() {}
+		explicit cow_ptr() : m_ptr(NULL), m_control(NULL) {}
 
 		template<typename U>
-		explicit cow_ptr(U* in) : Base(in) {}
+		explicit cow_ptr(U* in) : m_ptr(in), m_control(new dp::detail::shared_block_no_deleter<StoredT>(in)) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
 
 		template<typename U, typename DelT>
-		cow_ptr(U* in, DelT inDel) : Base(in, inDel) {}
+		cow_ptr(U* in, DelT inDel) : m_ptr(in), m_control(new dp::detail::shared_block_with_deleter<StoredT, DelT>(in, inDel)) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
 
 		template<typename U, typename DelT, typename Alloc>
-		cow_ptr(U* inPtr, DelT inDel, Alloc inAlloc) : Base(inPtr, inDel, inAlloc) {}
+		cow_ptr(U* inPtr, DelT inDel, Alloc inAlloc) : m_ptr(inPtr) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+			typedef typename Alloc::rebind<dp::detail::shared_block_with_allocator<U, DelT, Alloc> >::other Rebind;
+			Rebind rb;
+			m_control = rb.allocate(sizeof(dp::detail::shared_block_with_allocator<U, DelT, Alloc>));
+			try {
+#if !defined(DP_CPP20_OR_HIGHER)
+				rb.construct(m_control, dp::detail::shared_block_with_allocator<U, DelT, Alloc>(inPtr, inDel, inAlloc));
+#else
+				::new (m_control) dp::detail::shared_block_with_allocator<U, DelT, Alloc>(inPtr, inDel, inAlloc);
+#endif
+			}
+			catch (...) {
+				rb.deallocate(static_cast<dp::detail::shared_block_with_allocator<U, DelT, Alloc>*>(m_control), sizeof(dp::detail::shared_block_with_allocator<U, DelT, Alloc>));
+				throw;
+			}
+		}
 
 
-		cow_ptr(const cow_ptr& inPtr) :Base(inPtr) {}
+		cow_ptr(const cow_ptr& inPtr) : m_ptr(inPtr.m_ptr), m_control(inPtr.m_control) {
+			if (m_control) m_control->inc_shared();
+		}
 
 		//Other smart ptr constructors
 		template<typename U, typename DelT>
-		cow_ptr(dp::scoped_ptr<U, DelT>& in) : Base(in) {}
+		cow_ptr(dp::scoped_ptr<U, DelT>& in) : m_ptr(in.get()), m_control(new dp::detail::shared_block_with_deleter<StoredT, DelT>(in.release(), in.get_deleter())) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
 
 		template<typename U, typename DelT>
-		cow_ptr(dp::lite_ptr<U, DelT>& in) : Base(in) {}
+		cow_ptr(dp::lite_ptr<U, DelT>& in) : m_ptr(in.get()), m_control(new dp::detail::shared_block_with_deleter<StoredT, DelT>(in.release(), in.get_deleter())) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
 
 #ifndef DP_CPP17_OR_HIGHER
 		template<typename U>
-		cow_ptr(std::auto_ptr<U>& in) : Base(in) {}
+		cow_ptr(std::auto_ptr<U>& in) : m_ptr(in.get()), m_control(new dp::detail::shared_block_no_deleter<StoredT>(in.release())) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+		}
 #endif
 
 		template<typename U>
-		cow_ptr(const dp::cow_ptr<U>& inPtr) : Base(inPtr) {}
+		cow_ptr(const dp::cow_ptr<U>& inPtr) : m_ptr(inPtr.m_ptr), m_control(inPtr.m_control) {
+			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+			if (m_control) m_control->inc_shared();
+		}
 
+		~cow_ptr() {
+			if (m_control) m_control->dec_shared();
+		}
 
-		using Base::operator=;
-
-		cow_ptr& operator=(const cow_ptr& other) {
-			cow_ptr copy(other);
+		cow_ptr& operator=(const cow_ptr& inPtr) {
+			cow_ptr copy(inPtr);
 			this->swap(copy);
 			return *this;
 		}
 
-		void swap(cow_ptr& in) {
-			this->Base::swap(in);
+		template<typename U>
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, cow_ptr&>::type operator=(const cow_ptr<U>& inPtr) {
+			cow_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
+		}
+#ifndef DP_CPP17_OR_HIGHER
+		template<typename U>
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, cow_ptr&>::type operator=(std::auto_ptr<U>& inPtr) {
+			cow_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
+		}
+#endif
+
+		template<typename U, typename DelT>
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, cow_ptr&>::type operator=(dp::scoped_ptr<U, DelT>& inPtr) {
+			cow_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
+		}
+
+		template<typename U, typename DelT>
+		typename dp::enable_if<dp::detail::compatible_ptr_type<U, StoredT>::value, cow_ptr&>::type operator=(dp::lite_ptr<U, DelT>& inPtr) {
+			cow_ptr copy(inPtr);
+			this->swap(copy);
+			return *this;
+		}
+
+		void swap(cow_ptr& inPtr) {
+			using std::swap;
+			swap(m_ptr, inPtr.m_ptr);
+			swap(m_control, inPtr.m_control);
+		}
+
+		void reset() {
+			m_control->dec_shared();
+		}
+
+		void reset(StoredT* in) {
+			BlockT* newBlock = new BlockT(in);
+
+			m_control->dec_shared();
+			m_ptr = in;
+			m_control = newBlock;
 		}
 
 		const StoredT* get() const {
-			return Base::m_ptr;
+			return m_ptr;
 		}
 		StoredT* get() {
 			make_copy();
-			return Base::m_ptr;
+			return m_ptr;
 		}
 
 		const StoredT& operator*() const {
@@ -129,14 +205,25 @@ namespace dp {
 
 		const element_type& operator[](std::size_t index) const {
 			dp::static_assert_98<dp::is_array<StoredT>::value>();
-			return Base::m_ptr[index];
+			return m_ptr[index];
 		}
 		element_type& operator[](std::size_t index) {
 			dp::static_assert_98<dp::is_array<StoredT>::value>();
-			return Base::m_ptr[index];
+			return m_ptr[index];
 		}
 
-		
+		std::size_t use_count() const {
+			return m_control->shared_count;
+		}
+
+		bool unique() const {
+			return use_count() == 1;
+		}
+
+		operator bool() const {
+			return get() != NULL;
+		}
+
 		template<typename U>
 		bool owner_before(const dp::cow_ptr<U>& inPtr) const {
 			return get() < inPtr.get();
