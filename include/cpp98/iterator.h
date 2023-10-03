@@ -268,11 +268,7 @@ namespace dp {
     //Data
     /*  What I wouldn't do for deduced return types and variadic templates
     *   Assuming a container/object follows the standard approach and provides standard typedefs, this will work.
-    *
-    *   Also secret bonus feature - since std::data is a C++17 feature, the following preprocessor switch will allow access to a C++11-friendly
-    *   and more reliable variadic approach, which should hold for C++11 and C++14.
-    */
-#ifndef DP_CPP_11_DATA
+	*/
 
     template<typename T>
     typename T::pointer data(T& in) {
@@ -284,7 +280,7 @@ namespace dp {
         return in.data();
     }
 
-    /*
+	/*
     *  Specialisation for strings
     *  Because const char* is the eternal special case and we can't have nice things.
     *  Always return const char, otherwise substitution fails. Because string::data() always returned a const char* until C++17
@@ -308,42 +304,45 @@ namespace dp {
     *  not uncommon back in the day to use a workaround to get there.
     *  I can't require that the data is contiguous on the program level. Good luck to you if you're on an exotic implementation.
     *  However, I can provide data through the (most likely safer) data() member if it exists, and use the workaround otherwise.
-    */
-    namespace detail {
-        template<typename T>
-        struct HasDataMember {
-        private:
-            typedef char No;
-            typedef char(&Yes)[2];
+	*/
+#ifndef DP_BORLAND
+//Oh hey, Borland can neither process this trait, nor does it have a vector::data member
+//Can't make it too easy for us.
+	namespace detail {
+		template<typename T>
+		struct HasDataMember {
+		private:
+			typedef char No;
+			typedef char(&Yes)[2];
 
-            template<typename U>
-            static Yes test(int(*)[sizeof(detail::declval<U>().data())]);
-            template<typename>
-            static No test(...);
+			template<typename U>
+			static Yes test(int(*)[sizeof(detail::declval<U>().data())]);
+			template<typename>
+			static No test(...);
 
-        public:
-            static const bool value = sizeof(test<T>(0)) == sizeof(Yes);
+		public:
+			static const bool value = sizeof(test<T>(0)) == sizeof(Yes);
 
-        };
-    }
-    template<typename T>
-    typename dp::enable_if<!detail::HasDataMember<std::vector<T> >::value, T*>::type data(std::vector<T>& in) {
+		};
+	}
+	template<typename T>
+	typename dp::enable_if<!detail::HasDataMember<std::vector<T> >::value, T*>::type data(std::vector<T>& in) {
         return &in[0];
-    }
-    template<typename T>
-    typename dp::enable_if<!detail::HasDataMember<std::vector<T> >::value, const T*>::type data(const std::vector<T>& in) {
-        return &in[0];
-    }
-
+	}
+	template<typename T>
+	typename dp::enable_if<!detail::HasDataMember<std::vector<T> >::value, const T*>::type data(const std::vector<T>& in) {
+		return &in[0];
+	}
 #else
-    template<typename T>
-    auto data(T& in) -> decltype(in.data()) {
-        return in.data();
-    }
-    template<typename T>
-    auto data(const T& in) -> decltype(in.data()) {
-        return in.data();
-    }
+	template<typename T>
+	T* data(std::vector<T>& in){
+		return &in[0];
+	}
+	template<typename T>
+	const T* data(const std::vector<T>& in){
+		return &in[0];
+	}
+
 #endif
 
     //And after all this ugliness, we get to C-arrays

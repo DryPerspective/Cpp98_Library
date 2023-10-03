@@ -209,7 +209,7 @@ namespace dp {
 		}
 #else
 		template<typename U, std::size_t N>
-		span(dp::array<U,N>& arr, typename dp::enable_if<dp::detail::span_array_check<span<element_type, Extent>,dp::array<U,N> >::value, bool>::type = true){
+		span(dp::array<U,N>& arr, typename dp::enable_if<dp::detail::span_array_check<span<element_type, Extent>,dp::array<U,N> >::value, DP_ENABLE_TYPE>::type = true){
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 		template<typename U, std::size_t N>
@@ -238,16 +238,16 @@ namespace dp {
 		}
 
 		iterator begin() const {
-		#ifndef DP_BORLAND
+#ifndef DP_BORLAND
 			//Curse you quirky const-correctness. Now I need to use a const_cast
 			return static_cast<iterator>(const_cast<pointer_type&>(m_data));
-		#else
+#else
 			//Borland doesn't respect the const_cast and will still error.
 			//So we take the long way round.
 			const_iterator begin(static_cast<const_iterator>(m_data));
 			iterator res = const_cast<iterator&>(begin);
 			return res;
-		#endif
+#endif
 		}
 
 		const_iterator cbegin() const {
@@ -289,16 +289,16 @@ namespace dp {
 		}
 
 		reference front() {
-			return *this[0];
+			return (*this)[0];
 		}
 		const_reference front() const {
-			return *this[0];
+			return (*this)[0];
 		}
 		reference back() {
-			return *this[size() - 1];
+			return (*this)[size() - 1];
 		}
 		const_reference back() const {
-			return *this[size() - 1];
+			return (*this)[size() - 1];
 		}
 
 		pointer data() const {
