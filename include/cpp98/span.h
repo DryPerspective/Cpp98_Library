@@ -12,6 +12,8 @@
 
 #include "bits/version_defs.h"
 
+
+
 //We need to play this silly game because Borland can't handle default args correctly.
 #ifdef DP_BORLAND
 #include "bits/ignore.h"
@@ -116,17 +118,29 @@ namespace dp {
 
 
 #ifdef DP_BORLAND
+		//Astute readers of the library might wonder why I'm not using param_types in type_traits_ns.h for this
+		//The answer is simple - the Borland compiler can only choose between 2-3 template candidates at a time
+		//Even with only one possible viable match, it'll error out because there are too many candidates
+		template<typename T>
+		struct borland_span_types {};
+
+		template<template<typename, std::size_t> class templ, typename T, std::size_t N>
+		struct borland_span_types<templ<T,N> >{
+			typedef T param_type;
+			static const std::size_t size = N;
+		};
+
+
 		//Yes we need this for Borland because Borland can't process too many conditions in one line, unless it's a trait
 		template<typename SpanT, typename ArrT>
 		struct span_array_check {
-			dp::static_assert_98<is_special_of_span<SpanT>::value && is_special_of_array<ArrT>::value > assertion;
+			dp::static_assert_98<is_special_of_span<SpanT>::value && is_special_of_array<ArrT>::value> assertion;
 
+			typedef typename borland_span_types<SpanT>::param_type span_type;
+			typedef typename borland_span_types<ArrT>::param_type array_type;
 
-			typedef typename dp::param_types<SpanT>::first_param_type span_type;
-			typedef typename dp::param_types<ArrT>::first_param_type array_type;
-
-			static const bool value = (SpanT::extent == dp::dynamic_extent || SpanT::extent == dp::param_types<ArrT>::size_type) &&
-				dp::is_qualification_conversion<array_type, span_type>::value;
+			static const bool value = (SpanT::extent == dp::dynamic_extent || SpanT::extent == borland_span_types<ArrT>::size) &&
+				dp::is_qualification_conversion<typename array_type, typename span_type>::value;
 		};
 #endif
 
@@ -195,7 +209,7 @@ namespace dp {
 		}
 #else
 		template<typename U, std::size_t N>
-		span(dp::array<U,N>& arr, typename dp::enable_if<dp::detail::span_array_check<span<element_type, Extent>,dp::array<U,N> >::value, DP_ENABLE_TYPE>::type = true){
+		span(dp::array<U,N>& arr, typename dp::enable_if<dp::detail::span_array_check<span<element_type, Extent>,dp::array<U,N> >::value, bool>::type = true){
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 		template<typename U, std::size_t N>
