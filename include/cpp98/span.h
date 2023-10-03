@@ -113,13 +113,20 @@ namespace dp {
 			static const bool value = !dp::is_arithmetic<T>::value;
 #endif
 		};
+
+
 #ifdef DP_BORLAND
 		//Yes we need this for Borland because Borland can't process too many conditions in one line, unless it's a trait
-		//Yes we need to arduously provide the four template params separately. Go figure.
-		template<typename SpanT, std::size_t SpanExt, typename ArrT, std::size_t ArrExt>
+		template<typename SpanT, typename ArrT>
 		struct span_array_check {
-			static const bool value = (SpanExt == dp::dynamic_extent || SpanExt == ArrExt) &&
-								dp::is_qualification_conversion<ArrT, SpanT>::value;
+			dp::static_assert_98<is_special_of_span<SpanT>::value && is_special_of_array<ArrT>::value > assertion;
+
+
+			typedef typename dp::param_types<SpanT>::first_param_type span_type;
+			typedef typename dp::param_types<ArrT>::first_param_type array_type;
+
+			static const bool value = (SpanT::extent == dp::dynamic_extent || SpanT::extent == dp::param_types<ArrT>::size_type) &&
+				dp::is_qualification_conversion<array_type, span_type>::value;
 		};
 #endif
 
@@ -188,11 +195,11 @@ namespace dp {
 		}
 #else
 		template<typename U, std::size_t N>
-		span(dp::array<U,N>& arr, typename dp::enable_if<dp::detail::span_array_check<element_type, Extent, U, N>::value, DP_ENABLE_TYPE>::type = true){
+		span(dp::array<U,N>& arr, typename dp::enable_if<dp::detail::span_array_check<span<element_type, Extent>,dp::array<U,N> >::value, DP_ENABLE_TYPE>::type = true){
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 		template<typename U, std::size_t N>
-		span(const dp::array<U, N>& arr, typename dp::enable_if<dp::detail::span_array_check<element_type, Extent, U, N>::value, DP_ENABLE_TYPE>::type = true) {
+		span(const dp::array<U, N>& arr, typename dp::enable_if<dp::detail::span_array_check<span<element_type, Extent>, dp::array<U, N> >::value, DP_ENABLE_TYPE>::type = true) {
 			assign_contents(dp::data(arr), dp::size(arr));
 		}
 #endif
