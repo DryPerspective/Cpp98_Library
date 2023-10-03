@@ -399,6 +399,5 @@ namespace dp {
 
 
 #undef DP_ENABLE_TYPE
-#undef DP_BORLAND
 
 #endif
