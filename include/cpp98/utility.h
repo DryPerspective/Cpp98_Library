@@ -68,14 +68,12 @@ namespace dp {
 	}
 
 	template<typename T, typename U>
-	bool cmp_less_equal(T t, U u)
-	{
+	bool cmp_less_equal(T t, U u) {
 		return !dp::cmp_less(u, t);
 	}
 
 	template<typename T, typename U>
-	bool cmp_greater_equal(T t, U u)
-	{
+	bool cmp_greater_equal(T t, U u) {
 		return !dp::cmp_less(t, u);
 	}
 

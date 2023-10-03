@@ -17,7 +17,7 @@
 //We need to play this silly game because Borland can't handle default args correctly.
 #ifdef DP_BORLAND
 #include "bits/ignore.h"
-#define DP_ENABLE_TYPE dp::ignore
+#define DP_ENABLE_TYPE dp::ignore_t
 #else
 #define DP_ENABLE_TYPE bool
 #endif
@@ -188,7 +188,7 @@ namespace dp {
 		//From here on out we can use dummy enable_if variables to control overload resolution
 		//You can manually set them to true/false in the calling code if you *really* want to, but it has no effect.
 		template<typename It, typename End>
-		span(It begin, End end, typename dp::enable_if<dp::detail::not_size_t<End>::value, bool>::type = true) {
+		span(It begin, End end, typename dp::enable_if<dp::detail::not_size_t<End>::value, DP_ENABLE_TYPE>::type = true) {
 			assign_contents(dp::addressof(*begin), end - begin);
 		}
 
@@ -319,8 +319,7 @@ namespace dp {
 		}
 
 		template<std::size_t Count>
-		span<element_type, Count> first() const {
-			dp::static_assert_98<Extent >= Count>();
+		span<element_type, Count> first(typename dp::enable_if<Extent >= Count, DP_ENABLE_TYPE>::type = true) const {
 			return span<element_type, Count>(begin(), Count);
 		}
 		span<element_type, dp::dynamic_extent> first(std::size_t Count) const {
@@ -328,8 +327,7 @@ namespace dp {
 		}
 
 		template<std::size_t Count>
-		span<element_type, Count> last() const {
-			dp::static_assert_98<Extent >= Count>();
+		span<element_type, Count> last(typename dp::enable_if<Extent >= Count, DP_ENABLE_TYPE>::type = true) const {
 			return span<element_type, Count>(this->data() + (this->size() - Count), Count);
 		}
 		span<element_type, dp::dynamic_extent> last(std::size_t Count) const {
@@ -337,8 +335,7 @@ namespace dp {
 		}
 
 		template<std::size_t Offset, std::size_t Count>
-		span<element_type, Count> subspan() const {
-			dp::static_assert_98<Offset <= Extent && (Count == dp::dynamic_extent || Count < Extent - Offset)>();
+		span<element_type, Count> subspan(typename dp::enable_if<Offset <= Extent && (Count == dp::dynamic_extent || Count < Extent - Offset), DP_ENABLE_TYPE>::type = true) const {
 			return span<element_type, Count>(this->data() + Offset, Count);
 		}
 		span<element_type, dp::dynamic_extent> subspan(std::size_t Offset, std::size_t Count = dp::dynamic_extent) const {
