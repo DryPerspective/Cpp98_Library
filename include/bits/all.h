@@ -45,6 +45,7 @@
 
 #ifdef __BORLANDC__
 #include "borland/borland_strings.h"
+#include "borland/borland_deleters.h"
 #endif
 
 #endif
