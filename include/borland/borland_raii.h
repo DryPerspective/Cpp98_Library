@@ -150,5 +150,11 @@ namespace raii {
 }
 }
 
+
+
+
+
+
+
 #endif	//Ifndef borland
 #endif	//Header guard
