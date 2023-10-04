@@ -27,6 +27,7 @@ class unbound_storage {
 	unbound_storage(const unbound_storage&);
 	unbound_storage operator=(const unbound_storage&);
 
+
 public:
 	unbound_storage() : m_has_value(false) {};
 	
@@ -38,45 +39,20 @@ public:
 
 	~unbound_storage() {}
 
-	template<typename T>
-	static unbound_storage create(const T& in) {
-		return unbound_storage(in);
-	}
-
-	template<typename T, typename U>
-	static unbound_storage create(const U& in) {
-		unbound_storage us;
-		us.construct<T>(in);
-		return us;
-	}
-
-	/*
-	template<typename T>
-	void construct(const T& in) {
-		new (m_storage) T(in);
-		m_has_value = true;
-	}
-	*/
 
 	template<typename T, typename U>
 	void construct(const U& in) {
 		new (m_storage) T(in);
 		m_has_value = true;
 	}
-	/*
-	template<typename T>
-	unbound_storage& assign(const T& in) {
-		unbound_storage copy(in);
-		this->swap<T>(copy);
-		copy.reset<T>();
-		return *this;
-	}
-	*/
+
 	template<typename T, typename U>
 	unbound_storage& assign(const U& in) {
-		unbound_storage copy = unbound_storage::create<T>(in);
+		unbound_storage copy;
+		copy.construct<T>(in);
 		this->swap<T>(copy);
 		copy.reset<T>();
+		m_has_value = true;
 		return *this;
 	}
 	

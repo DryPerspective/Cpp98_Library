@@ -39,8 +39,7 @@ typename dp::enable_if<sizeof(To) == sizeof(From)
 
 template<typename T>
 typename dp::enable_if<dp::is_integral<T>::value, T>::type byteswap(T value){
-    dp::array<unsigned char, sizeof(T)> bitrep = 
-                        dp::bit_cast<dp::array<unsigned char, sizeof(T)> >(value);
+    dp::array<unsigned char, sizeof(T)> bitrep = dp::bit_cast<dp::array<unsigned char, sizeof(T)> >(value);
     std::reverse(bitrep.begin(), bitrep.end());
     return dp::bit_cast<T>(bitrep);
 }

@@ -285,7 +285,7 @@ namespace dp{
 #endif
 
 		~lite_ptr() {
-			Deleter()(m_data);
+			this->reset();
 		}
 
 
@@ -339,7 +339,7 @@ namespace dp{
 		//Or just delete the resource we have
 		void reset(pointer in = NULL) {
 			if (m_data != in) {
-				this->delete_resource(m_data);
+				Deleter()(m_data);
 				m_data = in;
 			}
 		}

@@ -8,6 +8,8 @@
 
 #include "cpp98/iterator.h"
 
+#include "bits/version_defs.h"
+
 /*
 * A pre-C++11 stand-in for std::array, which mimicks its interface and functionality.
 * This means it can (and should) be replaced with std::array when compiling in C++11 and up
@@ -34,12 +36,20 @@ struct array{
 
 
     reference at(size_type index){
+#ifdef DP_BORLAND_EXCEPTIONS
+        if (index >= N) throw System::Sysutils::Exception("Bad array access");
+#else
         if(index >= N) throw std::out_of_range("Bad array access");
+#endif
         return m_data[index];
     }
 
     const_reference at(size_type index) const{
-        if(index >= N) throw std::out_of_range("Bad array access");
+#ifdef DP_BORLAND_EXCEPTIONS
+        if (index >= N) throw System::Sysutils::Exception("Bad array access");
+#else
+        if (index >= N) throw std::out_of_range("Bad array access");
+#endif
         return m_data[index];
     }
 
