@@ -16,12 +16,15 @@ namespace dp {
 	template<typename T>
 	struct default_delete {
 		void operator()(T* in) {
+			//No incomplete types or void allowed
+			dp::static_assert_98<(sizeof(T) > 0)>();
 			delete in;
 		}
 	};
 	template<typename T>
 	struct default_delete<T[]> {
 		void operator()(T* in) {
+			dp::static_assert_98<(sizeof(T) > 0)>();
 			delete[] in;
 		}
 	};
@@ -29,6 +32,7 @@ namespace dp {
 	template<typename T, std::size_t N>
 	struct default_delete<T[N]> {
 		void operator()(T* in) {
+			dp::static_assert_98<(sizeof(T) > 0)>();
 			delete[] in;
 		}
 	};

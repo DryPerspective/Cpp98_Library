@@ -19,11 +19,11 @@ namespace dp{
     namespace detail {
         template<typename T, typename StrV>
         struct valid_constructor_range {
-            static const bool value = !dp::is_same<typename dp::remove_cvref<T>::type, StrV>::value&&
+            static const bool value = !dp::is_same<typename dp::remove_cvref<T>::type, StrV>::value &&
 #ifndef DP_BORLAND
-                !dp::is_convertible<T, const StrV::value_type*>::value&&
+                !dp::is_convertible<T, const StrV::value_type*>::value &&
 #else
-                !dp::is_same<T, const StrV::value_type*>::value&&
+                !dp::is_same<T, const StrV::value_type*>::value &&
 #endif
                 //No easy range::value_type_t<T> so we need to find an alternative to kick the problem to overload resolution.
                 true;// dp::is_same<typename std::iterator_traits<T>::value_type, CharT>::value;
