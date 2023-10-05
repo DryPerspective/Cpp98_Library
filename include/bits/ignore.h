@@ -16,7 +16,11 @@ namespace dp {
 		void operator=(const T&) const {}
 	};
 
-	static const ignore_t ignore = {};
+	static const ignore_t ignore 
+	#ifdef DP_BORLAND
+	= {};
+	#endif
+	;
 }
 
 #endif

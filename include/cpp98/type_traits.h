@@ -239,7 +239,7 @@ private:
     typedef char (&Yes)[2];
 
     template<typename V, typename W>
-    static Yes test(int(*)[sizeof(static_cast<V>(*((typename remove_reference<W>::type*)0)))]);
+    static Yes test(int(*)[sizeof(static_cast<W>(detail::declval<V>()))]);
     template<typename, typename>
     static No test(...);
 

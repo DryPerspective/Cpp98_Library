@@ -21,12 +21,14 @@ namespace dp{
         struct valid_constructor_range {
             static const bool value = !dp::is_same<typename dp::remove_cvref<T>::type, StrV>::value &&
 #ifndef DP_BORLAND
-                !dp::is_convertible<T, const StrV::value_type*>::value &&
+                !dp::is_convertible<T, typename StrV::const_pointer>::value &&
 #else
-                !dp::is_same<T, const StrV::value_type*>::value &&
+                !dp::is_same<T, typename StrV::const_pointer>::value &&
 #endif
                 //No easy range::value_type_t<T> so we need to find an alternative to kick the problem to overload resolution.
-                true;// dp::is_same<typename std::iterator_traits<T>::value_type, CharT>::value;
+                //The good news is that the build will fail even if this is bypassed.
+                //Bad news is I don't like it like this.
+                true; // dp::is_same<typename std::iterator_traits<T>::value_type, typename StrV::value_type>::value;
         };
     }
 
@@ -63,7 +65,7 @@ namespace dp{
         basic_string_view(const std::basic_string<CharT, Traits>& str) : ptr(str.data(), str.size()) {}
 
         template<typename Range>
-        basic_string_view(const Range& r, typename dp::enable_if<detail::valid_constructor_range<Range, basic_string_view<CharT,Traits> >::value, bool>::type = true) : ptr(dp::begin(const_cast<Range&>(r)), dp::size(r)) {}
+        basic_string_view(const Range& r, typename dp::enable_if<detail::valid_constructor_range<Range, basic_string_view<CharT,Traits> >::value, bool>::type = true) : ptr(dp::addressof(*dp::begin(const_cast<Range&>(r))), dp::size(r)) {}
         
 
         basic_string_view& operator=(const basic_string_view& other) {

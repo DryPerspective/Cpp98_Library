@@ -4,8 +4,8 @@
 #include "bits/static_assert_no_macro.h"
 
 #if !defined STATIC_ASSERT && !defined DP_NO_ASSERT_MACRO
-//#define STATIC_ASSERT(args) dp::static_assert_98<args>();
-#define STATIC_ASSERT(...) dp::static_assert_98<__VA_ARGS__>();
+//Brackets in the implemenation to prevent a > in the condition being parsed as a template closer
+#define STATIC_ASSERT(condition) dp::static_assert_98<(condition)>();
 #endif
 
 
