@@ -102,7 +102,11 @@ namespace dp{
             return ptr[index];
         }
         const_reference at(size_type index) const{
+#ifdef DP_BORLAND_EXCEPTIONS
+            if (index >= ptr.size) throw System::Sysutils::Exception("Out of range string_view access");
+#else
             if(index >= ptr.size) throw std::out_of_range("Out of range string_view access");
+#endif
             return ptr[index];
         }
 
