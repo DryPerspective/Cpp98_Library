@@ -31,7 +31,7 @@ namespace dp {
 		//If you're on Borland, good luck to you trying to store functions in an any
 		template<typename T, bool = dp::is_array<T>::value>
 		struct valid_any_impl {
-			typedef typename dp::array_decay<T>::type type;
+			typedef typename dp::decay_array<T>::type type;
 		};
 		template<typename T>
 		struct valid_any_impl<T, false>{

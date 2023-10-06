@@ -19,6 +19,7 @@
 #include "bits/unbound_storage.h"
 
 #include "cpp98/algorithm.h"
+#include "cpp98/any.h"
 #include "cpp98/array.h"
 #include "cpp98/bit.h"
 //Because byte contains a raw static assertion in the header
