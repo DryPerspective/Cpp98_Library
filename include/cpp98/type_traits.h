@@ -280,7 +280,7 @@ namespace detail{
 
 }
 template<typename T>
-struct is_copy_constructible : detail::is_constructible_from_one<T, typename add_lvalue_reference<T>::type> {};
+struct is_copy_constructible : detail::is_constructible_from_one<T, T> {};
 
 
 
@@ -300,7 +300,7 @@ struct is_assignable{
 };
 
 template<typename T>
-struct is_copy_assignable : is_assignable<T, typename add_lvalue_reference<T>::type> {};
+struct is_copy_assignable : is_assignable<T, T> {};
 
 template<typename T>
 struct is_destructible{

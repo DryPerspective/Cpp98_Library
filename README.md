@@ -13,6 +13,7 @@ All tools in this repo exist in `namespace dp`
 A writeup of all the features can be found on [the project's wiki](https://github.com/DryPerspective/Cpp98_Library/wiki), but a simple list of all headers included can be found here.
 
 * algorithm
+* any
 * array
 * bit
 * byte
