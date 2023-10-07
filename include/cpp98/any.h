@@ -6,6 +6,7 @@
 
 #include "cpp98/type_traits.h"
 #include "bits/unbound_storage.h"
+#include "bits/version_defs.h"
 
 #ifdef DP_BORLAND
 #include "bits/type_traits_ns.h"
