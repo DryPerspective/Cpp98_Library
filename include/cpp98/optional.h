@@ -17,9 +17,6 @@
 *   - We can't use a union containing T directly, as pre-C++11 unions were not permitted to contain
 *     types with nontrivial member functions
 *
-*   Implementation notes:
-*	- It's unavoidable that without memory laundering the lifetimes of this one are technically UB.
-*	  As much as it pains me to say it, this is probably the kind of UB which "just works" and can stay in.
 */
 
 //It's better to use std::optional and you should be able to swap this out for it when you get to C++17
