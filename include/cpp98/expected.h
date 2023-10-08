@@ -6,7 +6,7 @@
 #include "bits/unbound_storage.h"
 #include "bits/type_traits_ns.h"
 
-
+#include "cpp98/reference_wrapper.h"
 
 namespace dp{
 
@@ -43,6 +43,21 @@ namespace dp{
     };
 #endif
 
+    namespace detail {
+        //An "unexpected reference" type, to allow us to save a copy of an expensive type
+        template<typename ErrT>
+        class unexpect_ref {
+            dp::reference_wrapper<ErrT> m_data;
+
+        public:
+            
+            explicit unexpect_ref(dp::reference_wrapper<ErrT> in) : m_data(in) {}
+
+            ErrT& value() const {
+                return m_data.get();
+            }
+        };
+    }
 
     //Unexpected. For construction and holding of an unexpected value
     template<typename ErrT>
@@ -53,6 +68,9 @@ namespace dp{
         unexpected(const dp::unexpected<ErrT>& other) : stored_value(other.stored_value) {}
         template<typename U>
         unexpected(const U& other) : stored_value(other) {}
+
+        template<typename U>
+        unexpected(dp::detail::unexpect_ref<U> other) : stored_value(other.value()) {}
 
         const ErrT& error() const{ return stored_value; }
         ErrT& error(){ return stored_value; }
@@ -107,6 +125,11 @@ namespace dp{
         template<typename U>
         expected(const dp::unexpected<U>& other) : m_holds_value_type(false) {
             m_storage.template construct<error_type>(other.error());
+        }
+
+        template<typename U>
+        expected(dp::detail::unexpect_ref<U> other) : m_holds_value_type(false) {
+            m_storage.template construct<error_type>(other.value());
         }
 
         ~expected() {
@@ -245,6 +268,12 @@ namespace dp{
     template<typename ValT, typename ErrT>
     void swap(dp::expected<ValT,ErrT>& lhs, dp::expected<ValT,ErrT>& rhs){
         lhs.swap(rhs);
+    }
+
+    //An alternative to CTAD 
+    template<typename ErrT>
+    typename dp::detail::unexpect_ref<ErrT> unexpect(const ErrT& in) {
+        return dp::detail::unexpect_ref<ErrT>(dp::ref(const_cast<ErrT&>(in)));
     }
 
 

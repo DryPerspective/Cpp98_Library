@@ -125,7 +125,7 @@ namespace dp {
 			try {
 
 				//dp::detail::shared_block_with_allocator<U, Deleter, Alloc>* block = NULL;
-				rb.construct(block, dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc));
+				rb.construct(m_control, dp::detail::shared_block_with_allocator<U, Deleter, Alloc>(inPtr, inDel, inAlloc));
 				//m_control = block;
 			}
 			catch (...) {
