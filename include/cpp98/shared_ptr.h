@@ -530,25 +530,27 @@ namespace dp {
 		return temp;
 	}
 
-	template<typename T, typename U>
-	dp::shared_ptr<T> static_pointer_cast(const dp::shared_ptr<U>& inPtr) {
-		typedef typename dp::shared_ptr<T>::element_type ResT;
-		return dp::shared_ptr<T>(inPtr, static_cast<ResT>(inPtr.get()));
+	template<typename Target, typename U>
+	dp::shared_ptr<Target> static_pointer_cast(const dp::shared_ptr<U>& inPtr) {
+		typedef typename dp::shared_ptr<Target>::element_type ResT;
+		return dp::shared_ptr<Target>(inPtr, static_cast<ResT*>(inPtr.get()));
 	}
-	template<typename T, typename U>
-	dp::shared_ptr<T> dynamic_pointer_cast(const dp::shared_ptr<U>& inPtr) {
-		typedef typename dp::shared_ptr<T>::element_type ResT;
-		return dp::shared_ptr<T>(inPtr, dynamic_cast<ResT>(inPtr.get()));
+	template<typename Target, typename U>
+	dp::shared_ptr<Target> dynamic_pointer_cast(const dp::shared_ptr<U>& inPtr) {
+		typedef typename dp::shared_ptr<Target>::element_type ResT;
+		ResT* result = dynamic_cast<ResT*>(inPtr.get());
+		if (result) return dp::shared_ptr<Target>(inPtr, result);
+		return dp::shared_ptr<Target>();
 	}
-	template<typename T, typename U>
-	dp::shared_ptr<T> const_pointer_cast(const dp::shared_ptr<U>& inPtr) {
-		typedef typename dp::shared_ptr<T>::element_type ResT;
-		return dp::shared_ptr<T>(inPtr, const_cast<ResT>(inPtr.get()));
+	template<typename Target, typename U>
+	dp::shared_ptr<Target> const_pointer_cast(const dp::shared_ptr<U>& inPtr) {
+		typedef typename dp::shared_ptr<Target>::element_type ResT;
+		return dp::shared_ptr<Target>(inPtr, const_cast<ResT*>(inPtr.get()));
 	}
-	template<typename T, typename U>
-	dp::shared_ptr<T> reinterpret_pointer_cast(const dp::shared_ptr<U>& inPtr) {
-		typedef typename dp::shared_ptr<T>::element_type ResT;
-		return dp::shared_ptr<T>(inPtr, reinterpret_cast<ResT>(inPtr.get()));
+	template<typename Target, typename U>
+	dp::shared_ptr<Target> reinterpret_pointer_cast(const dp::shared_ptr<U>& inPtr) {
+		typedef typename dp::shared_ptr<Target>::element_type ResT;
+		return dp::shared_ptr<Target>(inPtr, reinterpret_cast<ResT*>(inPtr.get()));
 	}
 
 	template<typename Deleter, typename T>
