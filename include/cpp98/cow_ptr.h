@@ -75,20 +75,29 @@ namespace dp {
 		template<typename U, typename DelT, typename Alloc>
 		cow_ptr(U* inPtr, DelT inDel, Alloc inAlloc) : m_ptr(inPtr) {
 			dp::static_assert_98<dp::detail::compatible_ptr_type<U, StoredT>::value>();
+#if !defined(DP_CPP20_OR_HIGHER)
 			typedef typename Alloc::rebind<dp::detail::shared_block_with_allocator<U, DelT, Alloc> >::other Rebind;
 			Rebind rb;
 			m_control = rb.allocate(sizeof(dp::detail::shared_block_with_allocator<U, DelT, Alloc>));
 			try {
-#if !defined(DP_CPP20_OR_HIGHER)
+
 				rb.construct(m_control, dp::detail::shared_block_with_allocator<U, DelT, Alloc>(inPtr, inDel, inAlloc));
-#else
-				::new (m_control) dp::detail::shared_block_with_allocator<U, DelT, Alloc>(inPtr, inDel, inAlloc);
-#endif
+
 			}
 			catch (...) {
 				rb.deallocate(static_cast<dp::detail::shared_block_with_allocator<U, DelT, Alloc>*>(m_control), sizeof(dp::detail::shared_block_with_allocator<U, DelT, Alloc>));
 				throw;
 			}
+#else
+			m_control = std::allocator_traits<Alloc>::allocate(inAlloc, sizeof(dp::detail::shared_block_with_allocator<U, DelT, Alloc>));
+			try {
+				std::allocator_traits<Alloc>::construct(inAlloc, m_control, dp::detail::shared_block_with_allocator<U, DelT, Alloc>(inPtr, inDel, inAlloc));
+			}
+			catch (...) {
+				std::allocator_traits<Alloc>::deallocate(inAlloc, static_cast<dp::detail::shared_block_with_allocator<U, DelT, Alloc>*>(m_control), sizeof(dp::detail::shared_block_with_allocator<U, DelT, Alloc>));
+				throw;
+			}
+#endif
 		}
 
 

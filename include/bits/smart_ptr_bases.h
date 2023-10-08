@@ -250,14 +250,16 @@ namespace dp {
 			void destroy_resource() {
 				m_deleter(m_ptr);
 			}
-			void destroy_block() {
-				typename AllocT::rebind<shared_block_with_allocator>::other dealloc;
+			void destroy_block() {				
 #if !defined(DP_CPP20_OR_HIGHER)
+				typename AllocT::rebind<shared_block_with_allocator>::other dealloc;
 				dealloc.destroy(this);
-#else
-				this->~shared_block_with_allocator();
-#endif
 				dealloc.deallocate(this, sizeof(shared_block_with_allocator));
+#else
+				std::allocator_traits<AllocT>::destroy(m_alloc, this);
+				std::allocator_traits<AllocT>::deallocate(m_alloc, this, sizeof(shared_block_with_allocator));
+#endif
+				
 			}
 
 		public:
@@ -285,11 +287,18 @@ namespace dp {
 					throw;
 				}
 				//We separate them because custom deallocation is a little more complex.
+#if !defined(DP_CPP20_OR_HIGHER)
 				typedef typename AllocT::rebind<shared_block_with_allocator<StoredT, DelT, AllocT> >::other alloc_type;
-				shared_block_with_allocator* newBlock = NULL;
 				alloc_type all;
+#endif				
+				shared_block_with_allocator* newBlock = NULL;
+				
 				try {
+#if !defined(DP_CPP20_OR_HIGHER)
 					newBlock = all.allocate(sizeof(shared_block_with_allocator<StoredT, DelT, AllocT>));
+#else
+					std::allocator_traits<AllocT>::allocate(m_alloc, sizeof(shared_block_with_allocator<StoredT, DelT, AllocT>));
+#endif
 				}
 				catch (...) {
 					DelT newDeleter(m_deleter);
@@ -301,11 +310,15 @@ namespace dp {
 #if !defined(DP_CPP20_OR_HIGHER)
 					all.construct(newBlock, shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), AllocT(m_alloc)));
 #else
-					::new (newBlock) shared_block_with_allocator<StoredT, DelT, AllocT>(newPtr, DelT(m_deleter), AllocT(m_alloc));
+					std::allocator_traits<AllocT>::construct(m_alloc, newBlock, newPtr, m_deleter, m_alloc);
 #endif
 				}
 				catch (...) {
+#if !defined(DP_CPP20_OR_HIGHER)
 					all.deallocate(newBlock, sizeof(shared_block_with_allocator));
+#else
+					std::allocator_traits<AllocT>::deallocate(m_alloc, newBlock, sizeof(shared_block_with_allocator));
+#endif
 					DelT newDeleter(m_deleter);
 					newDeleter(newPtr);
 					throw;

@@ -34,6 +34,7 @@
 #include "cpp98/numeric.h"
 #include "cpp98/optional.h"
 #include "cpp98/ratio.h"
+#include "cpp98/reference_wrapper.h"
 #include "cpp98/scoped_ptr.h"
 #include "cpp98/shared_ptr.h"
 #include "cpp98/span.h"

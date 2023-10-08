@@ -25,6 +25,7 @@ A writeup of all the features can be found on [the project's wiki](https://githu
 * numeric
 * optional 
 * ratio
+* reference_wrapper
 * scoped_ptr
 * shared_ptr
 * span
