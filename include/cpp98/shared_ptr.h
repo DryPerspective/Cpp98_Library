@@ -103,6 +103,8 @@ namespace dp {
 
 		shared_ptr() : m_ptr(NULL), m_control(NULL) {}
 
+		explicit shared_ptr(dp::null_ptr_t) : m_ptr(NULL), m_control(NULL) {}
+
 		template<typename U>
 		explicit shared_ptr(U* inPtr) : m_ptr(inPtr), m_control(new dp::detail::shared_block_no_deleter<stored_type>(inPtr)) {
 			dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();

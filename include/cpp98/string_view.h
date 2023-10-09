@@ -12,6 +12,7 @@
 #include "cpp98/type_traits.h"
 #include "bits/fat_pointer.h"
 #include "bits/misc_memory_functions.h"
+#include "cpp98/null_ptr.h"
 
 
 namespace dp{
@@ -33,11 +34,12 @@ namespace dp{
     }
 
 
-
     template<typename CharT, typename Traits = std::char_traits<CharT> >
     class basic_string_view{
 
         dp::fat_pointer<const CharT> ptr;
+
+        basic_string_view(dp::null_ptr_t);
 
 
         public:

@@ -60,7 +60,9 @@ namespace dp {
 
 		typedef typename dp::remove_extent<StoredT>::type element_type;
 
-		explicit cow_ptr() : m_ptr(NULL), m_control(NULL) {}
+		cow_ptr() : m_ptr(NULL), m_control(NULL) {}
+
+		explicit cow_ptr(dp::null_ptr_t) : m_ptr(NULL), m_control(NULL) {}
 
 		template<typename U>
 		explicit cow_ptr(U* in) : m_ptr(in), m_control(new dp::detail::shared_block_no_deleter<StoredT>(in)) {

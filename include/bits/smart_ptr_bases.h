@@ -6,6 +6,7 @@
 
 #include "cpp98/type_traits.h"
 #include "bits/version_defs.h"
+#include "cpp98/null_ptr.h"
 
 #include "bits/static_assert_no_macro.h"
 
@@ -50,6 +51,7 @@ namespace dp {
 
 	template<typename>
 	class cow_ptr;
+
 
 	namespace detail {
 
