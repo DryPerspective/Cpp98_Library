@@ -15,11 +15,6 @@
 *   up to a size of 8 bytes (no clue why), so that just leaves us with the option of a free floating assert. Which is clunky but will work.
 */
 
-
-
-
-
-
 namespace dp {
 
 #ifndef DP_BORLAND

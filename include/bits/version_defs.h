@@ -49,7 +49,7 @@
 #endif
 
 
-#if defined(DP_BORLAND) && !defined(DP_BORLAND_USE_STD_EXCEPTIONS)
+#if defined(DP_BORLAND) && defined(DP_BORLAND_USE_BORLAND_EXCEPTIONS)
 #define DP_BORLAND_EXCEPTIONS
 #endif
 

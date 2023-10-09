@@ -31,6 +31,7 @@
 #include "cpp98/iterator.h"
 #include "cpp98/memory.h"
 #include "cpp98/new.h"
+#include "cpp98/null_ptr.h"
 #include "cpp98/numeric.h"
 #include "cpp98/optional.h"
 #include "cpp98/ratio.h"

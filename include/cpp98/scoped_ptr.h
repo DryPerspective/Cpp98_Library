@@ -269,7 +269,7 @@ namespace dp{
 		typedef const T* const_pointer;
 
 	public:
-		typedef T       element_type;
+		typedef T  element_type;
 		typedef T* pointer;
 
 
