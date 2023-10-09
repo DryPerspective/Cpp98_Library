@@ -10,7 +10,11 @@ namespace dp {
 		}
 	};
 
-	static const null_ptr_t null_ptr;
+	static const null_ptr_t null_ptr
+	#ifdef DP_BORLAND
+	= {}
+	#endif
+	;
 }
 
 #endif

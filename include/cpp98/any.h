@@ -261,7 +261,7 @@ namespace dp {
 
 #ifndef DP_BORLAND_EXCEPTIONS
 	struct bad_any_cast : public std::exception {
-		virtual const char* what() throw() {
+		virtual const char* what() const throw() {
 			return "Bad any cast";
 		}
 	};
