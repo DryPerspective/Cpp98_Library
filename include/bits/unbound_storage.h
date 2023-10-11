@@ -91,7 +91,7 @@ public:
 			other.construct<T>(this->get<T>());
 			this->destroy<T>();
 		}
-		swap(m_has_value, other.m_has_value);
+		//swap(m_has_value, other.m_has_value);
 	}
 
 
