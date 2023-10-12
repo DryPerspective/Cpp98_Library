@@ -59,6 +59,8 @@ struct bad_optional_access : System::Sysutils::Exception {
 			if (other.has_value()) m_storage.template construct<value_type>(*other);
 		}
 
+		//Don't try to be clever and coerce these to remove themselves from overload resolution when you have in invalid type.
+		//The non-explicit operator bool means this leads to a conversion path optional<anything> -> bool -> optional<integral_type>
 		template<typename U>
 		optional(const optional<U>& other) : m_storage() {
 			if (other.has_value()) m_storage.template construct<value_type>(*other);

@@ -132,7 +132,7 @@ namespace dp {
 		}
 
 		~cow_ptr() {
-			if (m_control) m_control->dec_shared();
+			this->reset();
 		}
 
 		cow_ptr& operator=(const cow_ptr& inPtr) {
@@ -177,13 +177,15 @@ namespace dp {
 		}
 
 		void reset() {
-			m_control->dec_shared();
+			if(m_control) m_control->dec_shared();
+			m_ptr = NULL;
+			m_control = NULL;
 		}
 
 		void reset(StoredT* in) {
 			BlockT* newBlock = new BlockT(in);
 
-			m_control->dec_shared();
+			if (m_control) m_control->dec_shared();
 			m_ptr = in;
 			m_control = newBlock;
 		}
@@ -237,7 +239,7 @@ namespace dp {
 
 		template<typename U>
 		bool owner_before(const dp::cow_ptr<U>& inPtr) const {
-			return get() < inPtr.get();
+			return m_control < inPtr.m_control;
 		}
 	};
 
