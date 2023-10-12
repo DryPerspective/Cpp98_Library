@@ -188,7 +188,7 @@ namespace dp {
 
 
 		~shared_ptr() {
-			if (m_control) m_control->dec_shared();
+			this->reset();
 		}
 
 
@@ -228,7 +228,7 @@ namespace dp {
 		}
 
 		void reset() {
-			m_control->dec_shared();
+			if(m_control) m_control->dec_shared();
 			m_control = NULL;
 			m_ptr = NULL;
 		}
@@ -240,7 +240,7 @@ namespace dp {
 			dp::detail::shared_control_block_base* newBlock = new dp::detail::shared_block_no_deleter<stored_type>(inPtr);
 
 			//Then, since simple pointer assignment shouldn't throw, we can provide the strong exception guarantee.
-			m_control->dec_shared();
+			if(m_control) m_control->dec_shared();
 			m_ptr = inPtr;
 			m_control = newBlock;
 		}
@@ -249,7 +249,7 @@ namespace dp {
 			dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
 			dp::detail::shared_control_block_base* newBlock = new dp::detail::shared_block_with_deleter<stored_type, Deleter>(inPtr, inDel);
 
-			m_control->dec_shared();
+			if (m_control) m_control->dec_shared();
 			m_ptr = inPtr;
 			m_control = newBlock;
 		}
@@ -258,7 +258,7 @@ namespace dp {
 			dp::static_assert_98<dp::detail::compatible_ptr_type<U, stored_type>::value>();
 			dp::detail::shared_control_block_base* newBlock = new dp::detail::shared_block_with_allocator<stored_type, Deleter, Alloc>(inPtr, inDel, inAlloc);
 
-			m_control->dec_shared();
+			if (m_control) m_control->dec_shared();
 			m_ptr = inPtr;
 			m_control = newBlock;
 		}
