@@ -23,9 +23,6 @@
 #endif
 
 
-
-
-
 namespace dp {
 
 	template<typename T, std::size_t N>

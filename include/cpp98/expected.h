@@ -270,20 +270,15 @@ namespace dp{
         lhs.swap(rhs);
     }
 
+
     //An alternative to CTAD 
+    //We can't just return a reference to in, as that will be construed as a success type
+    //We need a named "error" type and want to avoid constructing an unexpected, copying it out the function, then copying the value into the expected
+    //Yes, I miss move semantics and mandatory copy elision too
     template<typename ErrT>
     typename dp::detail::unexpect_ref<ErrT> unexpect(const ErrT& in) {
         return dp::detail::unexpect_ref<ErrT>(dp::ref(const_cast<ErrT&>(in)));
     }
-
-
-
-
-
-
-
-
-
 
 }
 

@@ -49,7 +49,7 @@ namespace dp {
 
 
 
-	//I don't like this approach either, but I dohn't have a lot of options
+	//I don't like this approach either, but I don't have a lot of options
 	//And to be honest, odds are this will never be a problem as almost all systems will have byte be one byte in size.
 	static const dp::static_assert_98<sizeof(dp::byte) == 1> dp_assert_byte_size
 	//Borland says that this must be initialised, C++ says it mustn't. Go figure.

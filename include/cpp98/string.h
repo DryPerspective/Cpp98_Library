@@ -1,9 +1,6 @@
 #ifndef DP_CPP98_STRING
 #define DP_CPP98_STRING
 
-
-
-
 #include <string>
 #include <algorithm>
 #include <functional>
