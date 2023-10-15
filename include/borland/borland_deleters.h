@@ -14,16 +14,18 @@ namespace dp {
 	*/
 	struct query_deleter {
 		void operator()(Data::Win::Adodb::TADOQuery* qry) {
-			qry->Close();
-			qry->SQL->Clear();
-			qry->Parameters->Clear();
-			delete qry;
+			if (qry) {
+				qry->Close();
+				qry->SQL->Clear();
+				qry->Parameters->Clear();
+				delete qry;
+			}
 		}
 	};
 
 	struct connection_deleter {
 		void operator()(Data::Win::Adodb::TADOConnection* conn){
-			if (conn->InTransaction) conn->RollbackTrans();
+			if (conn && conn->InTransaction) conn->RollbackTrans();
 			delete conn;
 		}
 	};

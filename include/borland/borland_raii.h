@@ -44,10 +44,10 @@ namespace raii {
 
 	public:
 		disabler(TControl* in) : comp(in) {
-			comp->Enabled = false;
+			if(comp) comp->Enabled = false;
 		}
 		~disabler() {
-			comp->Enabled = true;
+			if(comp) comp->Enabled = true;
 		}
 	};
 
@@ -82,9 +82,11 @@ namespace raii {
 	public:
 		query(qry_t* in) : qry(in) {}
 		~query() {
-			qry->Close();
-			qry->SQL->Clear();
-			qry->Parameters->Clear();
+			if (qry) {
+				qry->Close();
+				qry->SQL->Clear();
+				qry->Parameters->Clear();
+			}
 		}
 
 		qry_t* get() {
@@ -120,7 +122,7 @@ namespace raii {
 	public:
 		connection(conn_t* in) : conn(in) {}
 		~connection() {
-			if (conn->InTransaction) conn->RollbackTrans();
+			if (conn && conn->InTransaction) conn->RollbackTrans();
 		}
 
 		conn_t* get() {
