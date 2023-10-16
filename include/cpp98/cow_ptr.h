@@ -226,7 +226,7 @@ namespace dp {
 		}
 
 		std::size_t use_count() const {
-			return m_control->shared_count;
+			return m_control ? m_control->shared_count : 0;
 		}
 
 		bool unique() const {

@@ -272,7 +272,7 @@ namespace dp {
 
 	template<typename T>
 	typename dp::enable_if<dp::is_signed<T>::value && dp::is_integral<T>::value, std::string>::type to_string(T in) {
-		char buf[21];	//Bit enough to hold the full range
+		char buf[21];	//Big enough to hold the full range
 		std::sprintf(buf, "%ld", in);
 		return std::string(dp::begin(buf), std::find(dp::begin(buf), dp::end(buf),0)); 
 	}
@@ -307,7 +307,7 @@ namespace dp {
 
 	template<typename T>
 	typename dp::enable_if<dp::is_signed<T>::value && dp::is_integral<T>::value, std::wstring>::type to_wstring(T in) {
-		wchar_t buf[21];	//Bit enough to hold the full range
+		wchar_t buf[21];
 		std::swprintf(buf, 20, L"%ld", in);
 		return std::wstring(dp::begin(buf), std::find(dp::begin(buf), dp::end(buf), 0));
 	}
