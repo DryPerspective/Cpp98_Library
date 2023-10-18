@@ -181,7 +181,6 @@ optional<T> make_optional(const U& in) {
 }
 
 //Comparison operators
-//Friend members pattern to allow implicit conversion of solid values with optional ones
 template<typename T, typename U>
 bool operator==(const optional<T>& lhs, const optional<U>& rhs) {
 	if (lhs && rhs) {

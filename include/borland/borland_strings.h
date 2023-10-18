@@ -12,7 +12,7 @@
 
 #ifndef __BORLANDC__
 #error "This header requires a Borland/C++Builder compiler."
-#else
+#elif defined(DP_BORLAND) //If on C++98 Borland
 
 #include "cpp98/string_view.h"
 #include "cpp98/iterator.h"
@@ -48,6 +48,8 @@ namespace dp {
 
         //To prevent implicit conversions to a temporary Unicodestring, and lifetime issues.
 		UnicodeString_view(const char*);
+        template<std::size_t N>
+        UnicodeString_view(const char (&)[N]);
 
     public:
 
@@ -108,5 +110,42 @@ namespace dp {
 
 
 }
+#else 
+//Otherwise we must be on at least C++17 Borland
+#include <string_view>
+
+namespace dp {
+    class AnsiString_view : public std::string_view {
+
+        using Base = std::string_view;
+
+    public:
+        using Base::Base;
+        AnsiString_view(const AnsiString& as) : Base(as.c_str()) {}
+
+        explicit operator AnsiString() const {
+            return AnsiString(this->data(), this->length());
+        }
+    };
+
+    class UnicodeString_view : public std::wstring_view {
+
+        using Base = std::wstring_view;
+
+    public:
+        using Base::Base;
+        UnicodeString_view(const UnicodeString& us) : Base(us.c_str()) {}
+
+        //Avoid a temporary from Borland's bending of the type system
+        UnicodeString_view(const char*) = delete;
+        template<std::size_t N>
+        UnicodeString_view(const char(&)[N]) = delete;
+
+        explicit operator UnicodeString() const {
+            return UnicodeString(this->data(), this->length());
+        }
+    };
+}
+
 #endif  	//ifdef __BORLANDC__
 #endif      //Header guard
