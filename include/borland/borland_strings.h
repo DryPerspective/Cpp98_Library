@@ -145,6 +145,16 @@ namespace dp {
             return UnicodeString(this->data(), this->length());
         }
     };
+
+    inline namespace literals {
+        inline namespace string_view_literals {
+            constexpr dp::AnsiString_view operator""_asv(const char* str, std::size_t size) {
+                return dp::AnsiString_view(str, size);
+            }
+            constexpr dp::UnicodeString_view operator""_usv(const wchar_t* str, std::size_t size) {
+                return dp::UnicodeString_view(str, size);
+            }
+    }
 }
 
 #endif  	//ifdef __BORLANDC__
