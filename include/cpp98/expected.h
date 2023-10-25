@@ -265,6 +265,11 @@ namespace dp{
     template<typename ValT, typename ErrT>
     class expected<ValT&, ErrT&>;
 
+    template<typename ValT>
+    class expected<ValT, void>;
+
+
+    //Swapping
     template<typename ValT, typename ErrT>
     void swap(dp::expected<ValT,ErrT>& lhs, dp::expected<ValT,ErrT>& rhs){
         lhs.swap(rhs);
