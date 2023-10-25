@@ -185,10 +185,7 @@ namespace dp{
             }
             else {
                 m_storage.template swap<error_type>(other.m_storage);
-            }
-
-
-        
+            }        
         }
 
         value_type& operator*() {
