@@ -48,8 +48,6 @@ namespace dp {
 
         //To prevent implicit conversions to a temporary Unicodestring, and lifetime issues.
 		UnicodeString_view(const char*);
-        template<std::size_t N>
-        UnicodeString_view(const char (&)[N]);
 
     public:
 
@@ -138,8 +136,7 @@ namespace dp {
 
         //Avoid a temporary from Borland's bending of the type system
         UnicodeString_view(const char*) = delete;
-        template<std::size_t N>
-        UnicodeString_view(const char(&)[N]) = delete;
+
 
         explicit operator UnicodeString() const {
             return UnicodeString(this->data(), this->length());
