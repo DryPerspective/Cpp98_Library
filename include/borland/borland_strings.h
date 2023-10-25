@@ -151,6 +151,7 @@ namespace dp {
             constexpr dp::UnicodeString_view operator""_usv(const wchar_t* str, std::size_t size) {
                 return dp::UnicodeString_view(str, size);
             }
+        }
     }
 }
 
