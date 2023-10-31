@@ -143,13 +143,6 @@ namespace dp{
             return *this;
         }
 
-        template<typename U, typename G>
-        expected& operator=(const expected& other) {
-            expected copy(other);
-            this->swap(copy);
-            return *this;
-        }
-
         template<typename U>
         expected& operator=(const U& in) {
             expected copy(in);

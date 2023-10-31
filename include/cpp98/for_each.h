@@ -2,6 +2,7 @@
 #define DP_CPP98_FOR_EACH
 
 #include "cpp98/iterator.h"
+#include "bits/version_defs.h"
 
 //WIP
 #ifndef DP_CPP11_OR_LATER

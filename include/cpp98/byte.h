@@ -17,9 +17,10 @@
 
 namespace dp {
 
-#ifndef DP_BORLAND
 //Borland compiler takes a creative interpretation of the standard for friend functions
 //The simplest solution is to just avoid that mess. So yes, the Borland compiler has much weaker encapsulation
+#ifndef DP_BORLAND
+
 	class byte {
 		unsigned char val;
 

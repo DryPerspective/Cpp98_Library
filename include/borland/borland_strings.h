@@ -10,6 +10,8 @@
 *  the core elements of the library to those types, which can be safely ignored by people in a different predicament from my own.
 */
 
+#include "bits/version_defs.h"
+
 #ifndef __BORLANDC__
 #error "This header requires a Borland/C++Builder compiler."
 #elif defined(DP_BORLAND) //If on C++98 Borland

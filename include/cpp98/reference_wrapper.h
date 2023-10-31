@@ -3,6 +3,7 @@
 
 #include "cpp98/type_traits.h"
 #include "bits/misc_memory_functions.h"
+#include "bits/version_defs.h"
 
 #ifdef DP_BORLAND
 #include "bits/ignore.h"

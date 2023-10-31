@@ -13,6 +13,7 @@
 #include "bits/fat_pointer.h"
 #include "bits/misc_memory_functions.h"
 #include "cpp98/null_ptr.h"
+#include "bits/version_defs.h"
 
 
 namespace dp{

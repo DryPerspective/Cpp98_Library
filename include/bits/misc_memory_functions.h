@@ -18,6 +18,7 @@
 #include "cpp98/type_traits.h"
 #include "bits/type_traits_ns.h"
 #include "bits/static_assert_no_macro.h"
+#include "bits/version_defs.h"
 
 namespace dp {
 

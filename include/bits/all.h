@@ -26,7 +26,6 @@
 #ifndef DP_NO_INCLUDE_BYTE
 #include "cpp98/byte.h"
 #endif
-#include "cpp98/cow_ptr.h"
 #include "cpp98/expected.h"
 #include "cpp98/iterator.h"
 #include "cpp98/memory.h"

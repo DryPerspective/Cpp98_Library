@@ -1,6 +1,7 @@
 #ifndef DP_CPP98_NULL_PTR
 #define DP_CPP98_NULL_PTR
 
+#include "bits/version_defs.h"
 
 /*
 *  As with static_assert, we can't replicate a core language feature fully, nor can we use the same spelling; as this creates a warning on many compilers in C++98 mode

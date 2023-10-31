@@ -86,6 +86,7 @@ struct bad_optional_access : System::Sysutils::Exception {
 		}
 		template<typename U>
 		optional& operator=(const U& in) {
+			//Internally copies-and-swaps
 			m_storage.template assign<value_type>(in);
 			return *this;
 		}
