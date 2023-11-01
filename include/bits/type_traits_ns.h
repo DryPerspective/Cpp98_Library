@@ -84,6 +84,17 @@ namespace dp {
     template<typename T>
     struct decay_array : detail::decay_array<T> {};
 
+    //Whether a type is a valid candidate for "value semantics". i.e. it is not an array, easily copied, and copies produce equivalent types
+    template<typename T>
+    struct is_value_type {
+        static const bool value = !dp::is_array<T>::value && !dp::is_pointer<T>::value && !dp::is_reference<T>::value
+#ifndef DP_BORLAND
+            && dp::is_copy_constructible<T>::value && dp::is_copy_assignable<T>::value
+#endif
+            ;
+    };
+    
+
     /*
     *  A means to examine and extract the nth template type for a particular template
     *  This is done much more elegantly (and completely) in C++11 and above with variadics and tuples
