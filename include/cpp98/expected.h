@@ -91,6 +91,15 @@ namespace dp{
         lhs.swap(rhs);
     }
 
+    struct unexpect_t {
+        unexpect_t() {}
+    };
+
+    static const unexpect_t unexpect;
+
+
+
+
     template<typename ValT, typename ErrT>
     class expected {
     public:
@@ -130,6 +139,10 @@ namespace dp{
         template<typename U>
         expected(dp::detail::unexpect_ref<U> other) : m_holds_value_type(false) {
             m_storage.template construct<error_type>(other.value());
+        }
+
+        expected(dp::unexpect_t, const error_type& other) : m_holds_value_type(false) {
+            m_storage.template construct<error_type>(other);
         }
 
         ~expected() {
@@ -271,7 +284,7 @@ namespace dp{
     //We need a named "error" type and want to avoid constructing an unexpected, copying it out the function, then copying the value into the expected
     //Yes, I miss move semantics and mandatory copy elision too
     template<typename ErrT>
-    typename dp::detail::unexpect_ref<ErrT> unexpect(const ErrT& in) {
+    typename dp::detail::unexpect_ref<ErrT> unex(const ErrT& in) {
         return dp::detail::unexpect_ref<ErrT>(dp::ref(const_cast<ErrT&>(in)));
     }
 
