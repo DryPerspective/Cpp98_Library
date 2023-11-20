@@ -1,3 +1,6 @@
+#ifndef DP_CPP98_CCTYPE
+#define DP_CPP98_CCTYPE
+
 #include <cctype>
 
 /*
@@ -10,56 +13,59 @@
 
 namespace dp {
 
-    bool isalnum(char ch) {
+    inline bool isalnum(char ch) {
         return std::isalnum(static_cast<unsigned char>(ch));
     }
 
-    bool isalpha(char ch) {
+    inline bool isalpha(char ch) {
         return std::isalpha(static_cast<unsigned char>(ch));
     }
 
-    bool islower(char ch) {
+    inline bool islower(char ch) {
         return std::islower(static_cast<unsigned char>(ch));
     }
 
-    bool isupper(char ch) {
+    inline bool isupper(char ch) {
         return std::isupper(static_cast<unsigned char>(ch));
     }
 
-    bool isdigit(char ch) {
+    inline bool isdigit(char ch) {
         return std::isdigit(static_cast<unsigned char>(ch));
     }
 
-    bool isxdigit(char ch) {
+    inline bool isxdigit(char ch) {
         return std::isxdigit(static_cast<unsigned char>(ch));
     }
 
-    bool iscntrl(char ch) {
+    inline bool iscntrl(char ch) {
         return std::iscntrl(static_cast<unsigned char>(ch));
     }
 
-    bool isgraph(char ch) {
+    inline bool isgraph(char ch) {
         return std::isgraph(static_cast<unsigned char>(ch));
     }
 
-    bool isspace(char ch) {
+    inline bool isspace(char ch) {
         return std::isspace(static_cast<unsigned char>(ch));
     }
 
-    bool isprint(char ch) {
+    inline bool isprint(char ch) {
         return std::isprint(static_cast<unsigned char>(ch));
     }
 
-    bool ispunct(char ch) {
+    inline bool ispunct(char ch) {
         return std::ispunct(static_cast<unsigned char>(ch));
     }
 
-    char tolower(char ch) {
+    inline char tolower(char ch) {
         return static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
     }
 
-    char toupper(char ch) {
+    inline char toupper(char ch) {
         return static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
     }
 
 }
+
+
+#endif
