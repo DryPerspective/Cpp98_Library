@@ -17,6 +17,7 @@ A writeup of all the features can be found on [the project's wiki](https://githu
 * array
 * bit
 * byte
+* cctype
 * expected 
 * iterator
 * memory
