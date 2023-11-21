@@ -1,6 +1,10 @@
 #ifndef DP_CPP98_EXPECTED
 #define DP_CPP98_EXPECTED
 
+#ifdef DP_CPP17_EXPECTED
+#error "Both C++98 and C++17 dp::expected detected. Only use one or the other"
+#endif
+
 #include <exception>
 
 #include "bits/unbound_storage.h"
