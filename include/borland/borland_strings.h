@@ -115,46 +115,13 @@ namespace dp {
 #include <string_view>
 
 namespace dp {
-    class AnsiString_view : public std::string_view {
-
-        using Base = std::string_view;
-
-    public:
-        using Base::Base;
-        AnsiString_view(const AnsiString& as) : Base(as.c_str()) {}
-
-        explicit operator AnsiString() const {
-            return AnsiString(this->data(), this->length());
-        }
-    };
-
-    class UnicodeString_view : public std::wstring_view {
-
-        using Base = std::wstring_view;
-
-    public:
-        using Base::Base;
-        UnicodeString_view(const UnicodeString& us) : Base(us.c_str()) {}
-
-        //Avoid a temporary from Borland's bending of the type system
-        UnicodeString_view(const char*) = delete;
 
 
-        explicit operator UnicodeString() const {
-            return UnicodeString(this->data(), this->length());
-        }
-    };
+    //Client realised that Embarcadero beat us to the punch on these
+    using AnsiString_view [[deprecated("AnsiString_view's functionality can now be found in std::string_view")]]  = std::string_view;
+    using UnicodeString_view [[deprecated("UnicodeString_view's functionality can now be found in std::string_view")]]  = std::wstring_view;
 
-    inline namespace literals {
-        inline namespace string_view_literals {
-            constexpr dp::AnsiString_view operator""_asv(const char* str, std::size_t size) {
-                return dp::AnsiString_view(str, size);
-            }
-            constexpr dp::UnicodeString_view operator""_usv(const wchar_t* str, std::size_t size) {
-                return dp::UnicodeString_view(str, size);
-            }
-        }
-    }
+    
 }
 
 #endif  	//ifdef __BORLANDC__
