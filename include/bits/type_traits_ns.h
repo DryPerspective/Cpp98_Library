@@ -95,6 +95,22 @@ namespace dp {
     };
     
 
+    //Array decay which provides a type in the false case
+    namespace detail {
+        template<typename T, bool = dp::is_array<T>::value>
+        struct decay_if_array {
+            typedef typename dp::add_pointer<typename dp::remove_extent<T>::type>::type type;
+        };
+        template<typename T>
+        struct decay_if_array<T, false> {
+            typedef T type;
+        };
+    }
+
+    template<typename T>
+    struct decay_if_array : detail::decay_if_array<T> {};
+
+
     /*
     *  A means to examine and extract the nth template type for a particular template
     *  This is done much more elegantly (and completely) in C++11 and above with variadics and tuples
