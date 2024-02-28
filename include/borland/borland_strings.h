@@ -38,6 +38,9 @@ namespace dp {
 
 		using Base::operator=;
 
+#if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
+        explicit
+#endif
 		operator AnsiString() const{
 			return AnsiString(this->data(), this->length());
 		}
@@ -66,6 +69,9 @@ namespace dp {
 
 		using Base::operator=;
 
+#if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
+        explicit
+#endif
 		operator UnicodeString() const{
 			return UnicodeString(this->data(), this->length());
 		}

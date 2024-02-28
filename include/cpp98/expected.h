@@ -238,6 +238,9 @@ namespace dp{
             return m_holds_value_type;
         }
 
+#if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
+        explicit
+#endif
         operator bool() const {
             return has_value();
         }
