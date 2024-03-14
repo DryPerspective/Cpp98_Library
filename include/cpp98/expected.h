@@ -285,6 +285,22 @@ namespace dp{
         lhs.swap(rhs);
     }
 
+    //Equality comparison
+    template<typename V1, typename E1, typename V2, typename E2>
+    bool operator==(const expected<V1, E1>& lhs, const expected<V2, E2>& rhs) {
+        return lhs.has_value() && rhs.has_value() && *lhs == *rhs;
+    }
+
+    template<typename V1, typename E1, typename V2>
+    bool operator==(const expected<V1, E1>& lhs, const V2& rhs) {
+        return lhs.has_value() && *lhs == rhs;
+    }
+
+    template<typename V1, typename E1, typename E2>
+    bool operator==(const expected<V1, E1>& lhs, const unexpected<E2>& rhs) {
+        return !lhs.has_value() && lhs.error() == rhs.error();
+    }
+
 
     //An alternative to CTAD 
     //We can't just return a reference to in, as that will be construed as a success type
