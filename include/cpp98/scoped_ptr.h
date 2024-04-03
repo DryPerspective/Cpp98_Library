@@ -103,6 +103,9 @@ namespace dp{
 				}
 			}
 
+#if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
+			explicit
+#endif
 			operator bool() const {
 				return m_data;
 			}

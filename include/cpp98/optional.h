@@ -123,6 +123,9 @@ struct bad_optional_access : System::Sysutils::Exception {
 			return m_storage.has_value();
 		}
 
+#if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
+		explicit
+#endif
 		operator bool() const {
 			return has_value();
 		}

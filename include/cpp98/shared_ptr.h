@@ -295,6 +295,9 @@ namespace dp {
 			return use_count() == 1;
 		}
 
+#if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
+		explicit
+#endif
 		operator bool() const {
 			return get() != NULL;
 		}

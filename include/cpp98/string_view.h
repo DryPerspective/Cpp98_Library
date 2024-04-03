@@ -340,6 +340,9 @@ namespace dp{
             return find_last_not_of(basic_string_view(s), pos);
         }
 
+#if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
+        explicit
+#endif
         operator std::basic_string<CharT, Traits>() const{
             return std::basic_string<CharT, Traits>(begin(), end());
         }

@@ -238,6 +238,9 @@ namespace dp{
             return m_holds_value_type;
         }
 
+#if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
+        explicit
+#endif
         operator bool() const {
             return has_value();
         }
@@ -280,6 +283,22 @@ namespace dp{
     template<typename ValT, typename ErrT>
     void swap(dp::expected<ValT,ErrT>& lhs, dp::expected<ValT,ErrT>& rhs){
         lhs.swap(rhs);
+    }
+
+    //Equality comparison
+    template<typename V1, typename E1, typename V2, typename E2>
+    bool operator==(const expected<V1, E1>& lhs, const expected<V2, E2>& rhs) {
+        return lhs.has_value() && rhs.has_value() && *lhs == *rhs;
+    }
+
+    template<typename V1, typename E1, typename V2>
+    bool operator==(const expected<V1, E1>& lhs, const V2& rhs) {
+        return lhs.has_value() && *lhs == rhs;
+    }
+
+    template<typename V1, typename E1, typename E2>
+    bool operator==(const expected<V1, E1>& lhs, const unexpected<E2>& rhs) {
+        return !lhs.has_value() && lhs.error() == rhs.error();
     }
 
 
