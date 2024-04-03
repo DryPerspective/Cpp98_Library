@@ -83,7 +83,7 @@ namespace raii {
 		query(qry_t* in) : qry(in) {}
 		~query() {
 			if (qry) {
-				qry->Close();
+				if(qry->Active) qry->Close();
 				qry->SQL->Clear();
 				qry->Parameters->Clear();
 			}
