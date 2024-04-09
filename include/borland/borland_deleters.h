@@ -15,7 +15,7 @@ namespace dp {
 	struct query_deleter {
 		void operator()(Data::Win::Adodb::TADOQuery* qry) {
 			if (qry) {
-				qry->Close();
+				if(qry->Active) qry->Close();
 				qry->SQL->Clear();
 				qry->Parameters->Clear();
 				delete qry;
