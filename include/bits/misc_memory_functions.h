@@ -9,6 +9,8 @@
 *   in the complete memory.h header. 
 *   This allows memory.h to have an interface consistent with the standard while not dragging smart pointers and every last bit of it into every other header
 *   which just wants to use a single memory function.
+* 
+*   Note that this header uses some functions which are only part of C++20 <memory>, notably to_address
 */
 
 

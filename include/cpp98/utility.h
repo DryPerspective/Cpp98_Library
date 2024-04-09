@@ -6,6 +6,10 @@
 
 #include "cpp98/type_traits.h"
 
+/*
+*	Note that std::comp_foo and std::in_range are C++20 functions and not a part of C++17 <algorithm>
+*/
+
 
 namespace dp {
 

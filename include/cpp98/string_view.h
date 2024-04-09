@@ -15,6 +15,10 @@
 #include "cpp98/null_ptr.h"
 #include "bits/version_defs.h"
 
+/*
+*  Note that this class uses its C++20 interface. Functions starts_with(), ends_with(), and contains() are not present in C++17 std::string_view
+*/
+
 
 namespace dp{
 

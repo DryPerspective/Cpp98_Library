@@ -14,6 +14,10 @@
 
 namespace dp {
 
+	/*
+	*  Note that std::erase and std::erase_if are from C++20 so don't have standard counterparts in C++17
+	*/
+
 	template< class CharT, class Traits, class Alloc, class Pred >
 	typename std::basic_string<CharT, Traits, Alloc>::size_type erase_if(std::basic_string<CharT, Traits, Alloc>& c, Pred pred) {
 		typedef typename std::basic_string<CharT, Traits, Alloc> StringT;
