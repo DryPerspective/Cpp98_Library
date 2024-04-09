@@ -99,7 +99,6 @@ namespace dp {
 	/*
 	*  Unlike in C++20, this uses copy semantics, not move semantics. Be warned
 	*/
-#ifdef DP_CPP20_INTERFACE
 	template<typename ForwardIt>
 	ForwardIt shift_left(ForwardIt begin, ForwardIt end, typename std::iterator_traits<ForwardIt>::difference_type n) {
 		if (n <= 0) return end;
@@ -156,7 +155,7 @@ namespace dp {
 		}
 
 	}
-#endif
+
 	template<typename InputIt, typename UnaryPredicate>
 	bool is_partitioned(InputIt begin, InputIt end, UnaryPredicate pred) {
 		for (; begin != end; ++begin) {

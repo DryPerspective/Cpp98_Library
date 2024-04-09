@@ -105,7 +105,6 @@ typename dp::enable_if < dp::is_integral<T>::value&& dp::is_integral<U>::value
 	return detail::lcm_impl(std::abs(t), std::abs(u));
 }
 
-#ifdef DP_CPP20_INTERFACE
 template<typename T>
 T midpoint(T a, T b) {
 	return (a + b) / 2;
@@ -115,7 +114,7 @@ template<typename T>
 T* midpoint(T* a, T* b) {
 	return a + (b - a) / 2;
 }
-#endif
+
 
 }
 
