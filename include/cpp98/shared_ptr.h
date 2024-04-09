@@ -291,9 +291,11 @@ namespace dp {
 			return m_control ? m_control->shared_count : 0;
 		}
 
+#ifdef DP_CPP20_INTERFACE
 		bool unique() const {
 			return use_count() == 1;
 		}
+#endif
 
 #if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
 		explicit

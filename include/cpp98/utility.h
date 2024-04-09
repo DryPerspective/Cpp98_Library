@@ -27,6 +27,7 @@ namespace dp {
 	template<typename T>
 	T& declval();
 
+#ifdef DP_CPP20_INTERFACE
 	/*
 	*  Non-converting comparison functions. Yippee.
 	*  I don't have constexpr if here, so unfortunately we need to do this the hard way
@@ -82,6 +83,7 @@ namespace dp {
 		return dp::cmp_greater_equal(t, std::numeric_limits<Range>::min()) &&
 			dp::cmp_less_equal(t, std::numeric_limits<Range>::max());
 	}
+#endif
 
 }
 

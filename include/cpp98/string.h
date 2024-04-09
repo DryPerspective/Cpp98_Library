@@ -14,6 +14,7 @@
 
 namespace dp {
 
+#ifdef DP_CPP20_INTERFACE
 	template< class CharT, class Traits, class Alloc, class Pred >
 	typename std::basic_string<CharT, Traits, Alloc>::size_type erase_if(std::basic_string<CharT, Traits, Alloc>& c, Pred pred) {
 		typedef typename std::basic_string<CharT, Traits, Alloc> StringT;
@@ -31,6 +32,7 @@ namespace dp {
 		c.erase(it, c.end());
 		return r;
 	}
+#endif
 
 	/*
 	*	String conversion functions

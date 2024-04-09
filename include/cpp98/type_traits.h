@@ -218,6 +218,7 @@ namespace detail{
 template<typename T, typename enable_if<is_arithmetic<T>::value, bool>::type = true>
 struct is_unsigned : detail::is_unsigned<T>::type {};
 
+#ifdef DP_CPP20_INTERFACE
 template<typename T>
 struct is_bounded_array : false_type {};
 template<typename T, std::size_t N>
@@ -227,6 +228,7 @@ template<typename T>
 struct is_unbounded_array : false_type {};
 template<typename T>
 struct is_unbounded_array<T[]> : true_type {};
+#endif
 
 /*
 *   SUPPORTED OPERATIONS
@@ -574,16 +576,19 @@ struct decay{
     >::type type;
 };
 #endif
-
+#ifdef DP_CPP20_INTERFACE
 template<typename T>
 struct remove_cvref{
     typedef typename remove_cv<typename remove_reference<T>::type>::type type;
 };
 
+
 template<typename T>
 struct type_identity{
     typedef T type;
 };
+#endif
+
 
 /*
 * SIGN MODIFIERS

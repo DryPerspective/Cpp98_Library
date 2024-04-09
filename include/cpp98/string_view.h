@@ -183,6 +183,7 @@ namespace dp{
             return substr(pos1, count1).compare(basic_string_view(s, count2));
         }
 
+#ifdef DP_CPP20_INTERFACE
         bool starts_with(basic_string_view v) const{
             return substr(0, v.size()) == v;
         }
@@ -212,6 +213,7 @@ namespace dp{
         bool contains(const CharT* s) const{
             return find(s) != npos;
         }
+#endif
 
         size_type find(basic_string_view v, size_type pos = 0) const{
             //Alas we must use indexing as we need to return the index.

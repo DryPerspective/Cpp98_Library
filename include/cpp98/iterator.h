@@ -22,7 +22,7 @@
 
 namespace dp {
 
-
+#ifdef DP_CPP20_INTERFACE
     template<typename Iter>
     class counted_iterator {
         Iter                                                 m_current;
@@ -102,18 +102,18 @@ namespace dp {
     bool operator!=(const counted_iterator<Iter>& lhs, const counted_iterator<Iter>& rhs) {
         return !(lhs == rhs);
     }
-
+#endif
 
     /*
     *   ITERATOR FUNCTIONS
     */
-
+#ifdef DP_CPP20_INTERFACE
     template<typename Iter1, typename Iter2>
     void iter_swap(Iter1 lhs, Iter2 rhs) {
         using std::swap;
         swap(*lhs, *rhs);
     }
-
+#endif
     template<typename Iter>
     typename std::reverse_iterator<Iter> make_reverse_iterator(Iter in) {
         return std::reverse_iterator<Iter>(in);
@@ -245,7 +245,7 @@ namespace dp {
     std::size_t size(const T(&)[N]) {
         return N;
     }
-
+#ifdef DP_CPP20_INTERFACE
     template<typename T>
     std::ptrdiff_t ssize(const T& in) {
         return in.size();
@@ -254,7 +254,7 @@ namespace dp {
     std::ptrdiff_t ssize(const T(&)[N]) {
         return N;
     }
-
+#endif
     template<typename T>
     bool empty(const T& in) {
         return in.empty();

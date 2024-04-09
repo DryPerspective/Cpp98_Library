@@ -152,7 +152,7 @@ namespace dp {
 
     template<typename T, typename Alloc>
     struct uses_allocator : dp::detail::uses_allocator_impl<T, Alloc> {};
-
+#ifdef DP_CPP20_INTERFACE
     //To-address
     namespace detail {
         template<typename T>
@@ -185,7 +185,9 @@ namespace dp {
     typename dp::enable_if<!dp::detail::HasPtrToAddress<T>::value, T*>::type to_address(const T& inPtr) {
         return dp::to_address(inPtr.operator->());
     }
-#endif
+#endif //DP_CPP20_INTERFACE
+#endif //DP_BORLAND
+
     template<typename T>
     T* addressof(T& in) {
         return reinterpret_cast<T*>(
