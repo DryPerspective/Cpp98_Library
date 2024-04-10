@@ -228,7 +228,7 @@ template<typename T>
 struct is_unbounded_array : false_type {};
 template<typename T>
 struct is_unbounded_array<T[]> : true_type {};
-#endif
+
 
 /*
 *   SUPPORTED OPERATIONS
