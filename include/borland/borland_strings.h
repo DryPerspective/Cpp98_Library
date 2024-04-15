@@ -33,8 +33,8 @@ namespace dp {
         AnsiString_view(Base::const_pointer begin, Base::size_type size) :Base(begin, size) {}
         AnsiString_view(Base::const_pointer begin) : Base(begin) {}
 		AnsiString_view(const std::string& str) : Base(str) {}
-
-        AnsiString_view(const System::AnsiString& str) : Base(str.c_str()) {}
+        //Cast because some idiot at borland decided that c_str should return a *mutable* pointer
+        AnsiString_view(const System::AnsiString& str) : Base(static_cast<const char*>(str.c_str())) {}
 
 		using Base::operator=;
 
@@ -61,8 +61,8 @@ namespace dp {
         UnicodeString_view(Base::const_pointer begin, Base::size_type size) :Base(begin, size) {}
 		UnicodeString_view(Base::const_pointer begin) : Base(begin) {}
 		UnicodeString_view(const std::wstring& str) : Base(str) {}
-
-		UnicodeString_view(const System::UnicodeString& str) : Base(str.c_str()) {}
+        //Cast because some idiot at borland decided that c_str should return a *mutable* pointer
+		UnicodeString_view(const System::UnicodeString& str) : Base(static_cast<const wchar_t*>(str.c_str())) {}
 
 
 

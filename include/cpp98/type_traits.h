@@ -576,7 +576,6 @@ struct decay{
     >::type type;
 };
 #endif
-#ifdef DP_CPP20_INTERFACE
 template<typename T>
 struct remove_cvref{
     typedef typename remove_cv<typename remove_reference<T>::type>::type type;
@@ -587,7 +586,6 @@ template<typename T>
 struct type_identity{
     typedef T type;
 };
-#endif
 
 
 /*
