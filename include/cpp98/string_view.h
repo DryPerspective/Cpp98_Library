@@ -367,7 +367,7 @@ namespace dp{
     }
     template<typename CharT, typename Traits>
     bool operator<(const basic_string_view<CharT, Traits>& lhs, const basic_string_view<CharT, Traits>& rhs){
-        int comp =  Traits::compare(lhs.data(), rhs.data, std::min(lhs.size(), rhs.size()));
+        int comp =  Traits::compare(lhs.data(), rhs.data(), std::min(lhs.size(), rhs.size()));
         return comp == 0 ? lhs.size() < rhs.size() : comp < 0 ? true : false;
     }
     template<typename CharT, typename Traits>
