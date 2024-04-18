@@ -17,6 +17,10 @@
 
 /*
 *  Note that this class uses its C++20 interface. Functions starts_with(), ends_with(), and contains() are not present in C++17 std::string_view
+* 
+*  Note on comparison operators - we want to allow string_view types to compare with each other and anything which can be converted to a string view.
+*  This is trickier than you might think.
+*  But we find a way which pleases all compilers this was tested on.
 */
 
 
@@ -44,7 +48,20 @@ namespace dp{
 
         dp::fat_pointer<const CharT> ptr;
 
-        basic_string_view(dp::null_ptr_t);
+		basic_string_view(dp::null_ptr_t);
+
+        //The core of our comparison functions. Since we need to use hidden friends to resolve some issues, these can be called within
+		bool equals(basic_string_view rhs) const{
+			const basic_string_view& lhs = *this;
+			if (lhs.size() != rhs.size()) return false;
+			return Traits::compare(lhs.data(), rhs.data(), lhs.size()) == 0;
+		}
+
+        bool less_than(basic_string_view rhs) const {
+            const basic_string_view& lhs = *this;
+            int comp = Traits::compare(lhs.data(), rhs.data(), std::min(lhs.size(), rhs.size()));
+            return comp == 0 ? lhs.size() < rhs.size() : comp < 0 ? true : false;
+        }
 
 
         public:
@@ -350,37 +367,92 @@ namespace dp{
         operator std::basic_string<CharT, Traits>() const{
             return std::basic_string<CharT, Traits>(begin(), end());
         }
+
+        //See below for why we're doing hidden friends.
+		friend bool operator==(basic_string_view lhs, basic_string_view rhs) {
+			return lhs.equals(rhs);
+		}
+        friend bool operator!=(basic_string_view lhs, basic_string_view rhs) {
+            return !lhs.equals(rhs);
+        }
+        friend bool operator<(basic_string_view lhs, basic_string_view rhs) {
+            return lhs.less_than(rhs);
+        }
+        friend bool operator<=(basic_string_view lhs, basic_string_view rhs) {
+            return lhs.less_than(rhs) || lhs.equals(rhs);
+        }
+        friend bool operator>(basic_string_view lhs, basic_string_view rhs) {
+            return !(lhs <= rhs);
+        }
+        friend bool operator>=(basic_string_view lhs, basic_string_view rhs) {
+            return !lhs.less_than(rhs);
+        }
+
+
     };
 
     typedef basic_string_view<char>     string_view;
     typedef basic_string_view<wchar_t>  wstring_view;
 
 
-    template<typename CharT, typename Traits>
-    bool operator==(const basic_string_view<CharT, Traits>& lhs, const basic_string_view<CharT, Traits>& rhs){
-        if(lhs.size() != rhs.size()) return false;
-        return Traits::compare(lhs.data(), rhs.data(), lhs.size()) == 0;
+    /*
+    *  So, comparison operators. We want the following types to be comparable:
+    *  string_view == string_view
+    *  stringlike == string_view
+    *  string_view == stringlike
+    * 
+    *  Without further comparison. You may think- just use type_identity_t for stringlikes and hope. This will not work for two reasons:
+    *    * MSVC will throw a fit as after the type_identity_t is resolved you have identical functions. The official MS STL has to work around this but we can't because it requires things not in C++98
+    *    * Borland fails to properly account for type_identity_t as well; resulting in ambiguous calls.
+    *  The only way I've found to please both compilers is to have a hidden member for exact matches, and an unspecified template "Other" type for stringlikes
+    */
+	template<typename CharT, typename Traits, typename Other>
+	bool operator==(basic_string_view<CharT, Traits> lhs, const Other& rhs){
+		return lhs == basic_string_view<CharT, Traits>(rhs);
     }
-    template<typename CharT, typename Traits>
-    bool operator!=(const basic_string_view<CharT, Traits>& lhs, const basic_string_view<CharT, Traits>& rhs){
-        return !(lhs == rhs);
+	template<typename CharT, typename Traits, typename Other>
+	bool operator==(const Other& lhs, basic_string_view<CharT, Traits> rhs) {
+		return basic_string_view<CharT, Traits>(lhs) == rhs;
     }
-    template<typename CharT, typename Traits>
-    bool operator<(const basic_string_view<CharT, Traits>& lhs, const basic_string_view<CharT, Traits>& rhs){
-        int comp =  Traits::compare(lhs.data(), rhs.data(), std::min(lhs.size(), rhs.size()));
-        return comp == 0 ? lhs.size() < rhs.size() : comp < 0 ? true : false;
+    template<typename CharT, typename Traits, typename Other>
+    bool operator!=(basic_string_view<CharT, Traits> lhs, const Other& rhs) {
+        return lhs != basic_string_view<CharT, Traits>(rhs);
     }
-    template<typename CharT, typename Traits>
-    bool operator<=(const basic_string_view<CharT, Traits>& lhs, const basic_string_view<CharT, Traits>& rhs){
-        return (lhs == rhs) || (lhs < rhs);
+    template<typename CharT, typename Traits, typename Other>
+    bool operator!=(const Other& lhs, basic_string_view<CharT, Traits> rhs) {
+        return basic_string_view<CharT, Traits>(lhs) != rhs;
     }
-    template<typename CharT, typename Traits>
-    bool operator>(const basic_string_view<CharT, Traits>& lhs, const basic_string_view<CharT, Traits>& rhs){
-        return rhs < lhs;
+    template<typename CharT, typename Traits, typename Other>
+    bool operator<(basic_string_view<CharT, Traits> lhs, const Other& rhs) {
+        return lhs < basic_string_view<CharT, Traits>(rhs);
     }
-    template<typename CharT, typename Traits>
-    bool operator>=(const basic_string_view<CharT, Traits>& lhs, const basic_string_view<CharT, Traits>& rhs){
-        return rhs <= lhs;
+    template<typename CharT, typename Traits, typename Other>
+    bool operator<(const Other& lhs, basic_string_view<CharT, Traits> rhs) {
+        return basic_string_view<CharT, Traits>(lhs) < rhs;
+    }
+    template<typename CharT, typename Traits, typename Other>
+    bool operator<=(basic_string_view<CharT, Traits> lhs, const Other& rhs) {
+        return lhs <= basic_string_view<CharT, Traits>(rhs);
+    }
+    template<typename CharT, typename Traits, typename Other>
+    bool operator<=(const Other& lhs, basic_string_view<CharT, Traits> rhs) {
+        return basic_string_view<CharT, Traits>(lhs) <= rhs;
+    }
+    template<typename CharT, typename Traits, typename Other>
+    bool operator>(basic_string_view<CharT, Traits> lhs, const Other& rhs) {
+        return lhs > basic_string_view<CharT, Traits>(rhs);
+    }
+    template<typename CharT, typename Traits, typename Other>
+    bool operator>(const Other& lhs, basic_string_view<CharT, Traits> rhs) {
+        return basic_string_view<CharT, Traits>(lhs) > rhs;
+    }
+    template<typename CharT, typename Traits, typename Other>
+    bool operator>=(basic_string_view<CharT, Traits> lhs, const Other& rhs) {
+        return lhs >= basic_string_view<CharT, Traits>(rhs);
+    }
+    template<typename CharT, typename Traits, typename Other>
+    bool operator>=(const Other& lhs, basic_string_view<CharT, Traits> rhs) {
+        return basic_string_view<CharT, Traits>(lhs) >= rhs;
     }
 
     namespace detail{
