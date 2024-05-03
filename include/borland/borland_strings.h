@@ -45,6 +45,26 @@ namespace dp {
 			return AnsiString(this->data(), this->length());
 		}
 
+        //We have to mirror some of the comparison awkwardness here too. Joys of compiler bugs.
+        friend bool operator==(AnsiString_view lhs, AnsiString_view rhs) {
+            return static_cast<Base>(lhs) == static_cast<Base>(rhs);
+        }
+        friend bool operator!=(AnsiString_view lhs, AnsiString_view rhs) {
+            return static_cast<Base>(lhs) != static_cast<Base>(rhs);
+        }
+        friend bool operator<(AnsiString_view lhs, AnsiString_view rhs) {
+            return static_cast<Base>(lhs) < static_cast<Base>(rhs);
+        }
+        friend bool operator<=(AnsiString_view lhs, AnsiString_view rhs) {
+            return static_cast<Base>(lhs) <= static_cast<Base>(rhs);
+        }
+        friend bool operator>(AnsiString_view lhs, AnsiString_view rhs) {
+            return static_cast<Base>(lhs) > static_cast<Base>(rhs);
+        }
+        friend bool operator>=(AnsiString_view lhs, AnsiString_view rhs) {
+            return static_cast<Base>(lhs) >= static_cast<Base>(rhs);
+        }
+
     };
 
     class UnicodeString_view : public dp::wstring_view {
@@ -75,6 +95,28 @@ namespace dp {
 		operator UnicodeString() const{
 			return UnicodeString(this->data(), this->length());
 		}
+
+
+        //And again mirror conversion awkwardness
+        friend bool operator==(UnicodeString_view lhs, UnicodeString_view rhs) {
+            return static_cast<Base>(lhs) == static_cast<Base>(rhs);
+        }
+        friend bool operator!=(UnicodeString_view lhs, UnicodeString_view rhs) {
+            return static_cast<Base>(lhs) != static_cast<Base>(rhs);
+        }
+        friend bool operator<(UnicodeString_view lhs, UnicodeString_view rhs) {
+            return static_cast<Base>(lhs) < static_cast<Base>(rhs);
+        }
+        friend bool operator<=(UnicodeString_view lhs, UnicodeString_view rhs) {
+            return static_cast<Base>(lhs) <= static_cast<Base>(rhs);
+        }
+        friend bool operator>(UnicodeString_view lhs, UnicodeString_view rhs) {
+            return static_cast<Base>(lhs) > static_cast<Base>(rhs);
+        }
+        friend bool operator>=(UnicodeString_view lhs, UnicodeString_view rhs) {
+            return static_cast<Base>(lhs) >= static_cast<Base>(rhs);
+        }
+
 
     };
 
