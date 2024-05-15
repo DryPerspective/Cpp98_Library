@@ -52,7 +52,7 @@ namespace raii {
 	};
 
 	//Set the cursor to the input value, and automatically return it to the previous type
-	//e.g. Creating a raii::cursor(crHourGlass) when the screen cursor is crDefault
+	//e.g. Creating a raii::cursor crsr(crHourGlass) when the screen cursor is crDefault
 	//will set the cursor to the hourglass and automatically turn it back to crDefault at the end of the scope
 	class cursor : detail::disable_copies {
 		System::Uitypes::TCursor cursor;
