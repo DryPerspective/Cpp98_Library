@@ -11,6 +11,7 @@
 #include "bits/static_assert_no_macro.h"
 #include "cpp98/type_traits.h"
 #include "bits/version_defs.h"
+#include "bits/pointer_comparisons.h"
 
 
 namespace dp {
@@ -595,6 +596,10 @@ namespace dp {
 	bool operator<=(const dp::shared_ptr<T>& lhs, const dp::shared_ptr<U>& rhs) {
 		return lhs < rhs || lhs == rhs;
 	}
+
+	//Enable null ptr comparisons
+	template<>
+	struct enable_null_ptr_comparison_one_arg<shared_ptr> : dp::true_type {};
 
 	template<typename CharT, typename Traits, typename StoredT>
 	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const dp::shared_ptr<StoredT>& rhs) {

@@ -15,6 +15,7 @@
 #include "cpp98/type_traits.h"
 #include "bits/smart_ptr_bases.h"
 #include "bits/static_assert_no_macro.h"
+#include "bits/pointer_comparisons.h"
 
 /*
 *   A very simple scope-local smart pointer class for C++03. It is in no way as sophisticated as
@@ -242,6 +243,10 @@ namespace dp{
 		return !(lhs < rhs);
 	}
 
+	//Enable null pointer comparisons
+	template<>
+	struct enable_null_ptr_comparison_two_args<scoped_ptr> : dp::true_type {};
+
 	namespace detail {
 		//Borland has trouble with identifying functions.
 		//So instead we provide a slightly less bulletproof options for them.
@@ -406,6 +411,10 @@ namespace dp{
 	bool operator>=(const dp::lite_ptr<T1, D1>& lhs, const dp::lite_ptr<T2, D2>& rhs) {
 		return !(lhs < rhs);
 	}
+
+	//Enable null pointer comparisons
+	template<>
+	struct enable_null_ptr_comparison_two_args<lite_ptr> : dp::true_type {};
 
 
 }
