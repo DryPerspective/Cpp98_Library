@@ -243,9 +243,60 @@ namespace dp{
 		return !(lhs < rhs);
 	}
 
+#ifndef DP_BORLAND
 	//Enable null pointer comparisons
 	template<>
 	struct enable_null_ptr_comparison_two_args<scoped_ptr> : dp::true_type {};
+#else
+	template<typename T, typename Del>
+	bool operator==(const dp::scoped_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return !ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator==(dp::null_ptr_t, const dp::scoped_ptr<T, Del>& ptr) {
+		return !ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator!=(const dp::scoped_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator!=(dp::null_ptr_t, const dp::scoped_ptr<T, Del>& ptr) {
+		return ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator<(const dp::scoped_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get() < dp::null_ptr;
+	}
+	template<typename T, typename Del>
+	bool operator<(dp::null_ptr_t, const dp::scoped_ptr<T, Del>& ptr) {
+		return dp::null_ptr < ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator<=(const dp::scoped_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get() <= dp::null_ptr;
+	}
+	template<typename T, typename Del>
+	bool operator<=(dp::null_ptr_t, const dp::scoped_ptr<T, Del>& ptr) {
+		return dp::null_ptr <= ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator>(const dp::scoped_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get() > dp::null_ptr;
+	}
+	template<typename T, typename Del>
+	bool operator>(dp::null_ptr_t, const dp::scoped_ptr<T, Del>& ptr) {
+		return dp::null_ptr > ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator>=(const dp::scoped_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get() >= dp::null_ptr;
+	}
+	template<typename T, typename Del>
+	bool operator>=(dp::null_ptr_t, const dp::scoped_ptr<T, Del>& ptr) {
+		return dp::null_ptr >= ptr.get();
+	}
+#endif
 
 	namespace detail {
 		//Borland has trouble with identifying functions.
@@ -412,9 +463,60 @@ namespace dp{
 		return !(lhs < rhs);
 	}
 
+#ifndef DP_BORLAND
 	//Enable null pointer comparisons
 	template<>
 	struct enable_null_ptr_comparison_two_args<lite_ptr> : dp::true_type {};
+#else
+	template<typename T, typename Del>
+	bool operator==(const dp::lite_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return !ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator==(dp::null_ptr_t, const dp::lite_ptr<T, Del>& ptr) {
+		return !ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator!=(const dp::lite_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator!=(dp::null_ptr_t, const dp::lite_ptr<T, Del>& ptr) {
+		return ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator<(const dp::lite_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get() < dp::null_ptr;
+	}
+	template<typename T, typename Del>
+	bool operator<(dp::null_ptr_t, const dp::lite_ptr<T, Del>& ptr) {
+		return dp::null_ptr < ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator<=(const dp::lite_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get() <= dp::null_ptr;
+	}
+	template<typename T, typename Del>
+	bool operator<=(dp::null_ptr_t, const dp::lite_ptr<T, Del>& ptr) {
+		return dp::null_ptr <= ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator>(const dp::lite_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get() > dp::null_ptr;
+	}
+	template<typename T, typename Del>
+	bool operator>(dp::null_ptr_t, const dp::lite_ptr<T, Del>& ptr) {
+		return dp::null_ptr > ptr.get();
+	}
+	template<typename T, typename Del>
+	bool operator>=(const dp::lite_ptr<T, Del>& ptr, dp::null_ptr_t) {
+		return ptr.get() >= dp::null_ptr;
+	}
+	template<typename T, typename Del>
+	bool operator>=(dp::null_ptr_t, const dp::lite_ptr<T, Del>& ptr) {
+		return dp::null_ptr >= ptr.get();
+	}
+#endif
 
 
 }

@@ -3,6 +3,7 @@
 
 #include "cpp98/type_traits.h"
 #include "cpp98/null_ptr.h"
+#include "bits/version_defs.h"
 
 #include "bits/type_traits_ns.h"
 
@@ -19,6 +20,9 @@
 */
 
 namespace dp {
+
+	//And of course Borland compilers do not support template template paramters
+#ifndef DP_BORLAND
 
 	//Not all smart pointers are meant to be compared to raw pointers and not everything can be compared to a null pointer
 	//That's the spec
@@ -174,7 +178,7 @@ namespace dp {
 		return dp::null_ptr >= ptr.get();
 	}
 	
-
+#endif
 
 }
 

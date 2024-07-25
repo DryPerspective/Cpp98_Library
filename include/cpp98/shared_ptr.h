@@ -598,8 +598,59 @@ namespace dp {
 	}
 
 	//Enable null ptr comparisons
+#ifndef DP_BORLAND
 	template<>
 	struct enable_null_ptr_comparison_one_arg<shared_ptr> : dp::true_type {};
+#else
+	template<typename T>
+	bool operator==(const dp::shared_ptr<T>& lhs, dp::null_ptr_t) {
+		return !ptr.get();
+	}
+	template<typename T>
+	bool operator==(dp::null_ptr_t, const dp::shared_ptr<T>& ptr) {
+		return !ptr.get();
+	}
+	template<typename T>
+	bool operator!=(const dp::shared_ptr<T>& ptr, dp::null_ptr_t) {
+		return ptr.get();
+	}
+	template<typename T>
+	bool operator!=(dp::null_ptr_t, const dp::shared_ptr<T>& ptr) {
+		return ptr.get();
+	}
+	template<typename T>
+	bool operator<(const dp::shared_ptr<T>& ptr, dp::null_ptr_t) {
+		return ptr.get() < dp::null_ptr;
+	}
+	template<typename T>
+	bool operator<(dp::null_ptr_t, const dp::shared_ptr<T>& ptr) {
+		return dp::null_ptr < ptr.get();
+	}
+	template<typename T>
+	bool operator<=(const dp::shared_ptr<T>& ptr, dp::null_ptr_t) {
+		return ptr.get() <= dp::null_ptr;
+	}
+	template<typename T>
+	bool operator<=(dp::null_ptr_t, const dp::shared_ptr<T>& ptr) {
+		return dp::null_ptr <= ptr.get();
+	}
+	template<typename T>
+	bool operator>(const dp::shared_ptr<T>& ptr, dp::null_ptr_t) {
+		return ptr.get() > dp::null_ptr;
+	}
+	template<typename T>
+	bool operator>(dp::null_ptr_t, const dp::shared_ptr<T>& ptr) {
+		return dp::null_ptr > ptr.get();
+	}
+	template<typename T>
+	bool operator>=(const dp::shared_ptr<T>& ptr, dp::null_ptr_t) {
+		return ptr.get() >= dp::null_ptr;
+	}
+	template<typename T>
+	bool operator>=(dp::null_ptr_t, const dp::shared_ptr<T>& ptr) {
+		return dp::null_ptr >= ptr.get();
+	}
+#endif
 
 	template<typename CharT, typename Traits, typename StoredT>
 	std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const dp::shared_ptr<StoredT>& rhs) {
