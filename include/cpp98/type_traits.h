@@ -664,14 +664,8 @@ namespace detail{
 #endif
 }
 
-    template<typename T>
-    struct make_unsigned : detail::make_unsigned<T> {};
-
-    template<typename T>
-    struct void_t {
-        typedef void type;
-    };
-
+template<typename T>
+struct make_unsigned : detail::make_unsigned<T> {};
 
 }
 
