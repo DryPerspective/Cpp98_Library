@@ -46,6 +46,12 @@ public:
 		m_has_value = true;
 	}
 
+	template<typename T>
+	void default_construct() {
+		new (m_storage) T();
+		m_has_value = true;
+	}
+
 	template<typename T, typename U>
 	unbound_storage& assign(const U& in) {
 		unbound_storage copy;
