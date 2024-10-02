@@ -3,7 +3,7 @@
 
 #ifndef __BORLANDC__
 #error "This header requires a Borland/C++Builder compiler."
-#elif defined(DP_BORLAND) //If in C++98 Borland
+#elif __BORLANDC__ <= 0x730 //If in C++98 Borland
 
 /*
 *   A collection of tools which exploit the RAII pattern to achieve a particular goal.
