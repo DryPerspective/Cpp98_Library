@@ -161,7 +161,7 @@ namespace dp{
             return rcount;
         }
 
-        basic_string_view substr(size_type pos = 0, size_type count = npos){
+        basic_string_view substr(size_type pos = 0, size_type count = npos) const{
             if(pos > size()) throw std::out_of_range("Out of range string_view access");
             return basic_string_view<CharT, Traits>(ptr.begin + pos, std::min(count, size() - pos));
         }
