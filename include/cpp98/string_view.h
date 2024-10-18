@@ -176,13 +176,13 @@ namespace dp{
             return substr(pos1, count1).compare(v.substr(pos2, count2));
         }
         int compare(const CharT* s) const{
-            return compare(basic_string_view<CharT, Traits>((s));
+            return compare(basic_string_view(s));
         }
         int compare(size_type pos1, size_type count1, const CharT* s) const{
-            return substr(pos1, count1).compare(basic_string_view<CharT, Traits>(s));
+            return substr(pos1, count1).compare(basic_string_view(s));
         }
         int compare(size_type pos1, size_type count1, const CharT* s, size_type count2) const{
-            return substr(pos1, count1).compare(basic_string_view<CharT, Traits>((s, count2));
+            return substr(pos1, count1).compare(basic_string_view(s, count2));
         }
 
         bool starts_with(basic_string_view v) const{
@@ -192,7 +192,7 @@ namespace dp{
             return !empty() && Traits::eq(front(), ch);
         }
         bool starts_with(const CharT* s){
-            return starts_with(basic_string_view<CharT, Traits>((s));
+            return starts_with(basic_string_view(s));
         }
 
         bool ends_with(basic_string_view v) const{
@@ -202,7 +202,7 @@ namespace dp{
             return !empty() && Traits::eq(back(), ch);
         }
         bool ends_with(const CharT* s){
-            return ends_with(basic_string_view<CharT, Traits>((s));
+            return ends_with(basic_string_view(s));
         }
 
         bool contains(basic_string_view v) const{
