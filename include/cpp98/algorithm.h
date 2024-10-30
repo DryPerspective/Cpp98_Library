@@ -55,7 +55,7 @@ namespace dp {
 	}
 
 	template<typename InputIt, typename OutputIt, typename UnaryPredicate>
-	InputIt copy_if(InputIt begin, InputIt end, OutputIt dest_begin, UnaryPredicate pred) {
+	OutputIt copy_if(InputIt begin, InputIt end, OutputIt dest_begin, UnaryPredicate pred) {
 		for (; begin != end; ++begin) {
 			if (pred(begin)) {
 				*dest_begin = *begin;
@@ -66,7 +66,7 @@ namespace dp {
 	}
 
 	template<typename InputIt, typename Size, typename OutputIt>
-	InputIt copy_n(InputIt begin, Size n, OutputIt dest_begin) {
+	OutputIt copy_n(InputIt begin, Size n, OutputIt dest_begin) {
 		if (n > 0) {
 			*dest_begin = *begin;
 			++dest_begin;
