@@ -18,13 +18,6 @@
 */
 namespace dp {
 
-	template<typename InputIt, typename T>
-	InputIt find_if_not(InputIt begin, InputIt end, const T& value) {
-		for (; begin != end; ++begin) {
-			if (*begin != value) return begin;
-		}
-		return end;
-	}
 	template<typename InputIt, typename UnaryPredicate>
 	InputIt find_if_not(InputIt begin, InputIt end, UnaryPredicate pred) {
 		for (; begin != end; ++begin) {
