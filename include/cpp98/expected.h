@@ -11,6 +11,7 @@
 #include "bits/type_traits_ns.h"
 
 #include "cpp98/reference_wrapper.h"
+#include "cpp98/optional.h"
 
 namespace dp{
 
@@ -234,6 +235,12 @@ namespace dp{
             return m_storage.template get<error_type>();
         }
 
+        template<typename U>
+        error_type error_or(const U& in) const {
+            if (has_value()) return in;
+            return error();
+        }
+
         bool has_value() const {
             return m_holds_value_type;
         }
@@ -258,6 +265,86 @@ namespace dp{
         inline const value_type& get() const {
             return m_storage.template get<value_type>();
         }
+    };
+
+    //Partial specialisation for void
+    template<typename ErrT>
+    class expected<void, ErrT> {
+    public:
+        //In terms of implementation, this can be a little different. A void expected is in many ways just an optional where the optional is full in an error case
+        //This makes for an easier implementation, and means we can rule-of-zero our copy operations
+
+        typedef void                    value_type;
+        typedef ErrT                    error_type;
+        typedef dp::unexpected<ErrT>    unexpected_type;
+        template<typename U>
+        struct rebind {
+            typedef typename dp::expected<U, error_type> type;
+        };
+
+        expected() {}
+
+        template<typename U, typename G>
+        explicit expected(const dp::expected<U, G>& other) {
+            //Avoid the formal UB trap. Capture the other's error if it has one
+            if (!other.has_value()) m_error = static_cast<ErrT>(other.error());
+        }
+
+        template<typename U>
+        expected(const dp::unexpected<U>& other) : m_error(other.value()) {}
+
+        template<typename U>
+        expected(dp::detail::unexpect_ref<U> other) : m_error(other.value()) {}        
+
+        expected(dp::unexpect_t, const error_type& other) : m_error(other) {}
+
+        template<typename U>
+        expected& operator=(const U& in) {
+            expected copy(in);
+            this->swap(copy);
+            return *this;
+        }
+
+        void swap(expected& other) {
+            m_error.swap(other.m_error);
+        }
+
+        void operator*() const {}
+
+        void value() const {
+            if (!has_value()) throw dp::bad_expected_access<error_type>(this->error());
+        }
+
+        error_type& error() {
+            return *m_error;
+        }
+        const error_type& error() const {
+            return *m_error;
+        }
+
+        template<typename U>
+        error_type error_or(const U& in) {
+            if (has_value()) return in;
+            return error();
+        }
+
+        bool has_value() const {
+            return !m_error.has_value();
+        }
+
+#if defined(DP_BORLAND) && __BORLANDC__ >= 0x0730
+        explicit
+#endif
+        operator bool() const {
+            return has_value();
+        }
+
+
+    private:
+
+        dp::optional<ErrT> m_error;
+
+
     };
 
 
