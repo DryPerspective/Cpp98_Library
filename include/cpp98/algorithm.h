@@ -15,6 +15,8 @@
 *  The algorithms in the <algorithm> header which were added from C++11 onwards, recreated (where possible) here.
 * 
 *  Note that this uses the C++20 interface and functions shift_left and shift_right are not present in C++17 <algorithm>
+* 
+*  Full Documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Algorithm
 */
 namespace dp {
 

@@ -15,6 +15,8 @@
 * 
 *   You may notice some macros on array-type traits in this file. This is because I've found that Borland's compiler
 *   in it's pre-modern-C++ versions have trouble with those (perfectly valid) templates.
+* 
+*   Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Type-Traits
 */
 
 #include <cctype>

@@ -6,6 +6,8 @@
 #include "bits/static_assert_no_macro.h"    //To assert no zero denominators
 #include "cpp98/type_traits.h"
 
+//Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Ratio
+
 namespace dp{
 
 namespace detail{

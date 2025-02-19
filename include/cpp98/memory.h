@@ -4,6 +4,8 @@
 /*
 *	As I offer smart pointeers as entirely distinct heeaders anyway, we increase modularity by collapsing the memory header down to these three includes.
 *	In case you're having trouble figuring it out, bits/misc_memory_functions are where you'll find all the parts of <memory> which are not shared ptrs or scoped ptrs
+* 
+*   Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Memory
 */
 
 #include "bits/misc_memory_functions.h"

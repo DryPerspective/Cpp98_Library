@@ -11,6 +11,8 @@
 
 /*
 *	An analogue of std::optional which should work as far back as C++98.
+* 
+*   Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Optional
 *
 *   Implementation decisions:
 *   - We can't use alignment operators to police memory as they are a C++11 feature

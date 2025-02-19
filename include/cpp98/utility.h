@@ -8,6 +8,8 @@
 
 /*
 *	Note that std::comp_foo and std::in_range are C++20 functions and not a part of C++17 <algorithm>
+* 
+*   Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Utility
 */
 
 

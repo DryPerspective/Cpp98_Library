@@ -13,6 +13,8 @@
 /*
 * A pre-C++11 stand-in for std::array, which mimicks its interface and functionality.
 * This means it can (and should) be replaced with std::array when compiling in C++11 and up
+* 
+* Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Array
 */
 
 namespace dp{

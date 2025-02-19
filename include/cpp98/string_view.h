@@ -21,6 +21,8 @@
 *  Note on comparison operators - we want to allow string_view types to compare with each other and anything which can be converted to a string view.
 *  This is trickier than you might think.
 *  But we find a way which pleases all compilers this was tested on.
+* 
+*  Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/String-View
 */
 
 

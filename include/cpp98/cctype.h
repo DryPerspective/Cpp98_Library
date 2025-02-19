@@ -9,6 +9,8 @@
 *   * They deal in ints rather than character types so their use is undefined if the platform's char type cannot be represented as an unsigned char or EOF
 * 
 *   These functions solve both problems.
+* 
+*  Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/cctype
 */
 
 namespace dp {

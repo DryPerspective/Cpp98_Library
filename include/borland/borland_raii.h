@@ -12,6 +12,8 @@
 *   always performed upon exit from that block, however it goes.
 *	Not smart pointers because C++Builder runs on a world of global objects with static lifetime. These tools
 *   won't create or destroy them, but allows a function to do necessary cleanup automatically on all paths.
+* 
+*  Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Borland-RAII-Tools
 */
 
 

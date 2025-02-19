@@ -8,6 +8,8 @@
 
 #include <typeinfo>
 
+//Ful documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Type-index
+
 namespace dp{
 
 class type_index{

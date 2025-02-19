@@ -11,6 +11,10 @@
 #include "cpp98/type_traits.h"
 #include "cpp98/array.h"
 
+/*
+*  Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Bit
+*/
+
 namespace dp{
 
 //No endian enum - it's implementation defined and even the provided examples

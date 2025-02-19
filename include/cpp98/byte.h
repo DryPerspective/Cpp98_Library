@@ -13,6 +13,8 @@
 *	If we're asserting that a byte is exactly one byte in size, we can't inherit from a static_assert class because at the point we're asserting the size of an
 *	incomplete type; we can't composite because that would add size to the overall struct (and on one compiler this was tested on, empty classes were padded
 *   up to a size of 8 bytes (no clue why), so that just leaves us with the option of a free floating assert. Which is clunky but will work.
+* 
+*   Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Byte
 */
 
 namespace dp {

@@ -13,6 +13,8 @@
 #include "bits/version_defs.h"
 #include "bits/pointer_comparisons.h"
 
+//Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Shared-Ptr
+
 
 namespace dp {
 	

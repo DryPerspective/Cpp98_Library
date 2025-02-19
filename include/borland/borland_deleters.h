@@ -1,6 +1,10 @@
 #ifndef DP_CPP98_BORLAND_DELETERS
 #define DP_CPP98_BORLAND_DELETERS
 
+/*
+*  Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Borland-Deleters
+*/
+
 #ifndef __BORLANDC__
 #error "This header requires a Borland/C++Builder compiler."
 #else

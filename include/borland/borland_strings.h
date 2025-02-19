@@ -8,6 +8,8 @@
 *  and processing, and ultimately are their own awkward mess to deal with.
 *  Rather than sully the rest of this ISO C++98 library with a bunch of checks against Embarcadero types, I provide this header, which adapts
 *  the core elements of the library to those types, which can be safely ignored by people in a different predicament from my own.
+* 
+*  Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Borland-String-Handling
 */
 
 #include "bits/version_defs.h"

@@ -3,6 +3,8 @@
 
 #include <new>
 
+// Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/New
+
 namespace dp {
 
 	//Obviously not concurrency aware...

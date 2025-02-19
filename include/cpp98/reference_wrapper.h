@@ -12,6 +12,8 @@
 #define DP_ENABLE_TYPE bool
 #endif
 
+//Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Reference-Wrapper
+
 namespace dp {
 
 

@@ -11,6 +11,8 @@
 *   which just wants to use a single memory function.
 * 
 *   Note that this header uses some functions which are only part of C++20 <memory>, notably to_address
+* 
+*   Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Memory
 */
 
 

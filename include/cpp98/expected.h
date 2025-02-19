@@ -5,6 +5,10 @@
 #error "Both C++98 and C++17 dp::expected detected. Only use one or the other"
 #endif
 
+/*
+*  Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Expected
+*/
+
 #include <exception>
 
 #include "bits/unbound_storage.h"

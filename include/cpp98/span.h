@@ -12,6 +12,8 @@
 
 #include "bits/version_defs.h"
 
+//Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Span
+
 
 
 //We need to play this silly game because Borland can't handle default args correctly.

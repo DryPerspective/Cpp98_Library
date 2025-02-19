@@ -12,6 +12,10 @@
 #include "bits/type_traits_ns.h"
 #endif
 
+/*
+*  Full Documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Any
+*/
+
 //I know how much space will be optimal in my own internal implementation of unbound_storage.
 #define DP_ANY_MAX_STACK_SIZE sizeof(long double)
 

@@ -30,6 +30,8 @@
 *   As always, understand the implications of what you're doing before you do it.
 *   Another limitation is that its member and factory functions can only initialize data with 0 or 1 constructor arguments.
 *   This is simply because we dont have variadic templates at our disposal and handwriting every permutation is silly.
+* 
+*   Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Scoped_Ptr
 */
 
 namespace dp{

@@ -17,6 +17,8 @@
 *   Much of the modern <iterator> header is C++20 concepts and changes to support C++20 ranges.
 *   This library does not support either of those, so this header will be a lighter recreation than most.
 *   I don't think it's unreasonable not to recreate move_iterators or objects which require requires requires to work
+*  
+*   Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Iterator
 */
 
 

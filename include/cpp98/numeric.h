@@ -11,6 +11,8 @@ namespace dp {
 	*  A quick an easy recreation of a handful of numeric functions
 	*  No transform, transform_reduce, etc at present, as these were added to support parallelisation
 	*  And C++98 has no formal concurrency features.
+	* 
+	*  Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/Numeric
 	*/
 
 template<typename ForwardIt, typename T>

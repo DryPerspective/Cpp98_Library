@@ -12,6 +12,8 @@
 #include "cpp98/type_traits.h"
 #include "cpp98/iterator.h"
 
+//Full documentation at: https://github.com/DryPerspective/Cpp98_Library/wiki/String
+
 namespace dp {
 
 	/*
