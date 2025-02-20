@@ -309,9 +309,14 @@ namespace dp{
 
         size_type find_first_not_of(basic_string_view v, size_type pos = 0) const{
              for(size_type i = pos; i < size(); ++i){
+                 bool match = false;
                 for(const_iterator it = v.cbegin(); it != v.cend(); ++it){
-                    if(!Traits::eq(ptr[i],*it)) return i;
+                    if (Traits::eq(ptr[i], *it)) {
+                        match = true;
+                        break;
+                    }                    
                 }
+                if (!match) return i;
             }
             return npos;           
         }
@@ -328,9 +333,14 @@ namespace dp{
         size_type find_last_not_of(basic_string_view v, size_type pos = npos) const{
             size_type i = std::min(size() - 1, pos);
             for(const_reverse_iterator It = crbegin(); It != crend(); ++It, --i){
+                bool match = false;
                 for(const_iterator vIt = v.cbegin(); vIt != v.cend(); ++vIt){
-                    if(!Traits::eq(*It,*vIt)) return i;
+                    if (Traits::eq(*It, *vIt)) {
+                        match = true;
+                        break;
+                    }
                 }
+                if (!match) return i;
             }
             return npos;            
         }
