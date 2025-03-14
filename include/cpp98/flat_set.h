@@ -238,6 +238,13 @@ namespace dp {
             return std::equal_range(m_storage.begin(), m_storage.end(), val, get_comp());
         }
 
+        key_compare key_comp() const {
+            return get_comp();
+        }
+        key_compare value_comp() const {
+            return get_comp();
+        }
+
 
         friend bool operator==(const flat_set& lhs, const flat_set& rhs) {
             return lhs.m_storage == rhs.m_storage;
